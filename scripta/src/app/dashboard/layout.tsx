@@ -15,13 +15,18 @@ export default async function DashboardLayout({
     redirect('/verify-email');
   }
 
-  // Prefetch recent documents for the command palette
-  const recent = await db.document.findMany({
-    where: { userId: session.user.id },
-    orderBy: { updatedAt: 'desc' },
-    take: 5,
-    select: { id: true, title: true, type: true },
-  });
+  let recent: Array<{ id: string; title: string; type: string }> = [];
+
+  try {
+    recent = await db.document.findMany({
+      where: { userId: session.user.id },
+      orderBy: { updatedAt: 'desc' },
+      take: 5,
+      select: { id: true, title: true, type: true },
+    });
+  } catch (error) {
+    console.error('[dashboard layout] recent documents unavailable', error);
+  }
 
   return (
     <>

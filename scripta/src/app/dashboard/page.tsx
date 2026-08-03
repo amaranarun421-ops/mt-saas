@@ -57,16 +57,24 @@ export default async function DashboardOverviewPage() {
   const plan = session!.user.plan;
   const credits = session!.user.creditsRemaining;
 
-  const [recentDocs, totalCount, byType] = await Promise.all([
-    db.document.findMany({
-      where: { userId },
-      orderBy: { updatedAt: 'desc' },
-      take: 5,
-      select: { id: true, title: true, type: true, updatedAt: true },
-    }),
-    db.document.count({ where: { userId } }),
-    db.document.groupBy({ by: ['type'], where: { userId }, _count: { type: true } }),
-  ]);
+  let recentDocs: Array<{ id: string; title: string; type: string; updatedAt: Date }> = [];
+  let totalCount = 0;
+  let byType: Array<{ type: string; _count: { type: number } }> = [];
+
+  try {
+    [recentDocs, totalCount, byType] = await Promise.all([
+      db.document.findMany({
+        where: { userId },
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+        select: { id: true, title: true, type: true, updatedAt: true },
+      }),
+      db.document.count({ where: { userId } }),
+      db.document.groupBy({ by: ['type'], where: { userId }, _count: { type: true } }),
+    ]);
+  } catch (error) {
+    console.error('[dashboard overview] document stats unavailable', error);
+  }
 
   const typeMap = Object.fromEntries(byType.map((b) => [b.type, b._count.type]));
 

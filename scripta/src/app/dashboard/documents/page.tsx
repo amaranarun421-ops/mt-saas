@@ -28,46 +28,52 @@ export default async function DocumentsPage({
       : {}),
   };
 
-  const [documents, folders, typeCounts] = await Promise.all([
-    db.document.findMany({
-      where,
-      orderBy: { updatedAt: 'desc' },
-      include: { folder: { select: { id: true, name: true, color: true } } },
-    }),
-    db.folder.findMany({
-      where: { userId },
-      orderBy: { updatedAt: 'desc' },
-      include: { _count: { select: { documents: true } } },
-    }),
-    db.document.groupBy({
-      by: ['type'],
-      where: { userId },
-      _count: { type: true },
-    }),
-  ]);
+  let documents: Array<{
+    id: string;
+    type: string;
+    title: string;
+    content: string;
+    tags: string | null;
+    updatedAt: Date;
+    createdAt: Date;
+    folder: { id: string; name: string; color: string } | null;
+  }> = [];
+  let folders: Array<{ id: string; name: string; color: string; _count: { documents: number } }> = [];
+  let typeCounts: Array<{ type: string; _count: { type: number } }> = [];
+
+  try {
+    [documents, folders, typeCounts] = await Promise.all([
+      db.document.findMany({
+        where,
+        orderBy: { updatedAt: 'desc' },
+        include: { folder: { select: { id: true, name: true, color: true } } },
+      }),
+      db.folder.findMany({
+        where: { userId },
+        orderBy: { updatedAt: 'desc' },
+        include: { _count: { select: { documents: true } } },
+      }),
+      db.document.groupBy({ by: ['type'], where: { userId }, _count: { type: true } }),
+    ]);
+  } catch (error) {
+    console.error('[documents page] showcase fallback', error);
+  }
 
   const totalCount = documents.length;
-  const typeMap = Object.fromEntries(
-    typeCounts.map((t) => [t.type, t._count.type])
-  );
+  const typeMap = Object.fromEntries(typeCounts.map((t) => [t.type, t._count.type]));
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-            Documents
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Documents</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {totalCount === 0
               ? 'Your saved documents will appear here.'
               : `${totalCount} document${totalCount === 1 ? '' : 's'} saved.`}
           </p>
         </div>
-        <Button
-          asChild
-          className="button-bg btn-press text-white h-10"
-        >
+        <Button asChild className="h-10 text-white button-bg btn-press">
           <Link href="/dashboard/write/blog">
             <Sparkles className="mr-2 h-4 w-4" />
             New document
@@ -84,9 +90,7 @@ export default async function DocumentsPage({
           tags: d.tags,
           updatedAt: d.updatedAt.toISOString(),
           createdAt: d.createdAt.toISOString(),
-          folder: d.folder
-            ? { id: d.folder.id, name: d.folder.name, color: d.folder.color }
-            : null,
+          folder: d.folder ? { id: d.folder.id, name: d.folder.name, color: d.folder.color } : null,
         }))}
         folders={folders.map((f) => ({
           id: f.id,

@@ -24,10 +24,19 @@ function GoogleIcon() {
   );
 }
 
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== '0';
+const googleVisible = SHOWCASE_MODE || !!process.env.NEXT_PUBLIC_GOOGLE_CONFIGURED;
+const githubVisible = SHOWCASE_MODE || !!process.env.NEXT_PUBLIC_GITHUB_CONFIGURED;
+
 export function SocialAuthButtons() {
   const [loadingProvider, setLoadingProvider] = useState<null | 'google' | 'github'>(null);
 
   async function handle(provider: 'google' | 'github') {
+    if (SHOWCASE_MODE) {
+      toast.message(`${provider === 'google' ? 'Google' : 'GitHub'} sign-in is showcase-only here. Use the demo account below.`);
+      return;
+    }
+
     setLoadingProvider(provider);
     try {
       await signIn(provider, { callbackUrl: '/dashboard' });
@@ -38,12 +47,9 @@ export function SocialAuthButtons() {
     }
   }
 
-  const googleConfigured = !!process.env.NEXT_PUBLIC_GOOGLE_CONFIGURED;
-  const githubConfigured = !!process.env.NEXT_PUBLIC_GITHUB_CONFIGURED;
-
   return (
     <div className="grid grid-cols-1 gap-2">
-      {googleConfigured && (
+      {googleVisible && (
         <Button
           type="button"
           variant="outline"
@@ -53,11 +59,15 @@ export function SocialAuthButtons() {
         >
           <GoogleIcon />
           <span className="ml-2">
-            {loadingProvider === 'google' ? 'Opening Google...' : 'Continue with Google'}
+            {SHOWCASE_MODE
+              ? 'Continue with Google'
+              : loadingProvider === 'google'
+                ? 'Opening Google...'
+                : 'Continue with Google'}
           </span>
         </Button>
       )}
-      {githubConfigured && (
+      {githubVisible && (
         <Button
           type="button"
           variant="outline"
@@ -67,11 +77,20 @@ export function SocialAuthButtons() {
         >
           <GithubIcon />
           <span className="ml-2">
-            {loadingProvider === 'github' ? 'Opening GitHub...' : 'Continue with GitHub'}
+            {SHOWCASE_MODE
+              ? 'Continue with GitHub'
+              : loadingProvider === 'github'
+                ? 'Opening GitHub...'
+                : 'Continue with GitHub'}
           </span>
         </Button>
       )}
-      {!googleConfigured && !githubConfigured && (
+      {SHOWCASE_MODE && (
+        <p className="text-center text-xs text-muted-foreground">
+          OAuth buttons are visual-only in showcase mode. Use the demo account to enter the dashboard.
+        </p>
+      )}
+      {!SHOWCASE_MODE && !googleVisible && !githubVisible && (
         <p className="text-center text-xs text-muted-foreground">
           Social login will appear here when{' '}
           <code className="rounded bg-muted px-1">GOOGLE_CLIENT_ID</code> and{' '}
