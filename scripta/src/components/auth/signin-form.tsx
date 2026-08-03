@@ -17,8 +17,8 @@ import { SocialAuthButtons } from './social-auth-buttons';
 
 type Inputs = z.infer<typeof authValidation.login>;
 
-const DEMO_EMAIL = process.env.NEXT_PUBLIC_DEMO_EMAIL ?? '';
-const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? '';
+const DEMO_EMAIL = process.env.NEXT_PUBLIC_DEMO_EMAIL ?? 'demo@scripta.app';
+const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? 'scripta123';
 
 export function SignInForm() {
   const router = useRouter();
@@ -30,13 +30,11 @@ export function SignInForm() {
   const form = useForm<Inputs>({
     resolver: zodResolver(authValidation.login),
     defaultValues: {
-      // Prefill demo credentials so the tour is one click away.
       email: DEMO_EMAIL,
       password: DEMO_PASSWORD,
     },
   });
 
-  // Surface query-string status messages
   const verified = params.get('verified');
   const error = params.get('error');
 
@@ -52,7 +50,7 @@ export function SignInForm() {
         toast.error('Invalid email or password.');
         return;
       }
-      toast.success('Signed in. Redirecting…');
+      toast.success('Signed in. Redirecting...');
       setTimeout(() => router.push('/dashboard'), 300);
     } catch (err) {
       console.error(err);
@@ -63,10 +61,6 @@ export function SignInForm() {
   }
 
   async function signInDemo() {
-    if (!DEMO_EMAIL || !DEMO_PASSWORD) {
-      toast.error('Demo credentials are not configured.');
-      return;
-    }
     setIsDemoLoading(true);
     try {
       const res = await signIn('credentials', {
@@ -75,7 +69,7 @@ export function SignInForm() {
         redirect: false,
       });
       if (!res || res.error) {
-        toast.error('Demo account is unavailable. Run `bun run scripts/seed-demo-user.ts`.');
+        toast.error('Demo account is unavailable right now.');
         return;
       }
       toast.success('Signed in as the demo user.');
@@ -97,37 +91,36 @@ export function SignInForm() {
         </p>
       </div>
 
-      {/* One-click demo banner */}
-      <div className="rounded-lg border border-primary-200/60 bg-gradient-to-br from-primary-50 to-amber-50 dark:from-primary-500/10 dark:to-amber-500/10 dark:border-primary-500/20 p-4">
+      <div className="rounded-lg border border-primary-200/60 bg-gradient-to-br from-primary-50 to-amber-50 p-4 dark:border-primary-500/20 dark:from-primary-500/10 dark:to-amber-500/10">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary-500 shrink-0" />
+          <Sparkles className="h-4 w-4 shrink-0 text-primary-500" />
           <p className="text-xs font-semibold text-foreground">
-            Tour the demo — no signup needed
+            Tour the demo - no signup needed
           </p>
         </div>
-        <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+        <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
           Sign in instantly as the demo user (10 free credits, all 4 modes
-          accessible from the dashboard). The form below is pre-filled — just
+          accessible from the dashboard). The form below is pre-filled - just
           hit the button.
         </p>
         <Button
           type="button"
           onClick={signInDemo}
           disabled={isDemoLoading || isLoading}
-          className="mt-3 w-full btn-elevated btn-press h-10 text-sm"
+          className="mt-3 h-10 w-full btn-elevated btn-press text-sm"
         >
           {isDemoLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Zap className="mr-2 h-4 w-4" />
           )}
-          {isDemoLoading ? 'Signing in…' : 'Try demo account'}
+          {isDemoLoading ? 'Signing in...' : 'Try demo account'}
         </Button>
       </div>
 
       {verified && (
         <div className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-          Your email is verified — sign in to continue.
+          Your email is verified - sign in to continue.
         </div>
       )}
       {error === 'invalid-token' && (
@@ -156,7 +149,7 @@ export function SignInForm() {
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="email"
               type="email"
@@ -184,11 +177,11 @@ export function SignInForm() {
             </Link>
           </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
+              placeholder="Enter your password"
               className="pl-9 pr-9"
               disabled={isLoading}
               {...form.register('password')}
@@ -216,12 +209,12 @@ export function SignInForm() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="w-full btn-elevated btn-press h-11"
+          className="h-11 w-full btn-elevated btn-press"
         >
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Signing in…
+              Signing in...
             </>
           ) : (
             'Sign in'

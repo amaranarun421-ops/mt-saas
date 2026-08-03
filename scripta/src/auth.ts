@@ -8,6 +8,47 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import type { Provider } from 'next-auth/providers';
 
+const DEMO_USER = {
+  email: (process.env.NEXT_PUBLIC_DEMO_EMAIL ?? 'demo@scripta.app').toLowerCase(),
+  password: process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? 'scripta123',
+  firstName: 'Demo',
+  lastName: 'Writer',
+  name: 'Demo Writer',
+} as const;
+
+async function ensureDemoUser() {
+  const hashed = await bcrypt.hash(DEMO_USER.password, 12);
+  const existing = await db.user.findUnique({ where: { email: DEMO_USER.email } });
+
+  if (existing) {
+    return db.user.update({
+      where: { id: existing.id },
+      data: {
+        password: hashed,
+        emailVerified: new Date(),
+        plan: 'free',
+        creditsRemaining: 10,
+        firstName: DEMO_USER.firstName,
+        lastName: DEMO_USER.lastName,
+        name: DEMO_USER.name,
+      },
+    });
+  }
+
+  return db.user.create({
+    data: {
+      email: DEMO_USER.email,
+      password: hashed,
+      firstName: DEMO_USER.firstName,
+      lastName: DEMO_USER.lastName,
+      name: DEMO_USER.name,
+      emailVerified: new Date(),
+      plan: 'free',
+      creditsRemaining: 10,
+    },
+  });
+}
+
 const providers: Provider[] = [
   Credentials({
     name: 'credentials',
@@ -28,12 +69,20 @@ const providers: Provider[] = [
       if (!parsed.success) return null;
 
       const { email, password } = parsed.data;
-      const user = await db.user.findUnique({
-        where: { email: email.toLowerCase() },
-      });
+      const normalizedEmail = email.toLowerCase();
+      const isDemoCredentials =
+        normalizedEmail === DEMO_USER.email && password === DEMO_USER.password;
+
+      const user = isDemoCredentials
+        ? await ensureDemoUser()
+        : await db.user.findUnique({ where: { email: normalizedEmail } });
       if (!user || !user.password) return null;
-      const valid = await bcrypt.compare(password, user.password);
+
+      const valid = isDemoCredentials
+        ? true
+        : await bcrypt.compare(password, user.password);
       if (!valid) return null;
+
       return {
         id: user.id,
         email: user.email,
@@ -44,7 +93,6 @@ const providers: Provider[] = [
   }),
 ];
 
-// Conditionally add OAuth providers only when env vars are set
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
     Google({
@@ -90,13 +138,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (dbUser) {
           token.plan = dbUser.plan;
           token.creditsRemaining = dbUser.creditsRemaining;
-          // Prisma returns Date | null; coerce to boolean for the JWT.
           token.isEmailVerified = dbUser.emailVerified != null;
           token.firstName = dbUser.firstName ?? null;
           token.lastName = dbUser.lastName ?? null;
         }
       }
-      // Refresh credit count on session resume for active users
+
       if (trigger === 'update') {
         const dbUser = await db.user.findUnique({
           where: { id: token.id as string },
@@ -125,25 +172,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const isAuthed = !!auth?.user;
       const isEmailVerified = !!auth?.user?.isEmailVerified;
 
-      // Dashboard routes require both auth and verified email
       if (path.startsWith('/dashboard')) {
         if (!isAuthed) return false;
         if (!isEmailVerified) {
-          return Response.redirect(
-            new URL('/verify-email', request.nextUrl.origin)
-          );
+          return Response.redirect(new URL('/verify-email', request.nextUrl.origin));
         }
         return true;
       }
-      // Avoid showing signin/signup to already-authed users
-      if (
-        (path === '/signin' || path === '/signup') &&
-        isAuthed &&
-        isEmailVerified
-      ) {
-        return Response.redirect(
-          new URL('/dashboard', request.nextUrl.origin)
-        );
+
+      if ((path === '/signin' || path === '/signup') && isAuthed && isEmailVerified) {
+        return Response.redirect(new URL('/dashboard', request.nextUrl.origin));
       }
       return true;
     },
