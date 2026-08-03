@@ -1,0 +1,543 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   Driftframe design tokens — v3 (CALM PREMIUM)
+   - Light bg #f7f7f8 (warm premium off-white)
+   - Dark bg #0a0a0f (the v1 look, kept for the toggle)
+   - Signature gradient (#ff3d81 → #7c3aed → #3b82f6) reserved for ONLY
+     4 sanctioned usages:
+       1) Logo mark (front rectangle fill)
+       2) Credit pill background (softened stops)
+       3) Progress ring stroke
+       4) Favicon tile
+     Plus brand accent: logo wordmark "frame" in gradient-text.
+   - All other CTAs use solid #7c3aed (the middle gradient color).
+   ============================================================ */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-clash-display), var(--font-satoshi), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Driftframe-specific tokens */
+  --color-bg-base: var(--bg-base);
+  --color-surface: var(--surface);
+  --color-border-glass: var(--border-glass);
+  --color-gradient-from: var(--gradient-from);
+  --color-gradient-via: var(--gradient-via);
+  --color-gradient-to: var(--gradient-to);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ============================================================
+   LIGHT MODE (DEFAULT)
+   ============================================================ */
+:root {
+  --radius: 0.75rem;
+  /* Calm premium off-white background */
+  --bg-base: #f7f7f8;
+  --surface: #ffffff;
+  --border-glass: rgba(10, 10, 15, 0.06);
+
+  /* Signature gradient stops — used ONLY for sanctioned spots */
+  --gradient-from: #ff3d81;
+  --gradient-via: #7c3aed;
+  --gradient-to: #3b82f6;
+
+  /* Solid brand accent — the v3 default for CTAs */
+  --accent-solid: #7c3aed;
+  --accent-solid-hover: #6938ef;
+
+  --background: #f7f7f8;
+  --foreground: #0a0a0f;
+  --card: #ffffff;
+  --card-foreground: #0a0a0f;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0f;
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f1f4;
+  --secondary-foreground: #0a0a0f;
+  --muted: #f1f1f4;
+  --muted-foreground: #5a5a66;
+  --accent: #f1f1f4;
+  --accent-foreground: #0a0a0f;
+  --destructive: #e5484d;
+  --border: rgba(10, 10, 15, 0.08);
+  --input: rgba(10, 10, 15, 0.08);
+  --ring: #7c3aed;
+  --chart-1: #ff3d81;
+  --chart-2: #7c3aed;
+  --chart-3: #3b82f6;
+  --chart-4: #f59e0b;
+  --chart-5: #10b981;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0a0a0f;
+  --sidebar-primary: #7c3aed;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f1f4;
+  --sidebar-accent-foreground: #0a0a0f;
+  --sidebar-border: rgba(10, 10, 15, 0.08);
+  --sidebar-ring: #7c3aed;
+}
+
+/* ============================================================
+   DARK MODE (toggle-only)
+   ============================================================ */
+.dark {
+  --bg-base: #0a0a0f;
+  --surface: rgba(255, 255, 255, 0.04);
+  --border-glass: rgba(255, 255, 255, 0.08);
+
+  --gradient-from: #ff3d81;
+  --gradient-via: #7c3aed;
+  --gradient-to: #3b82f6;
+
+  --accent-solid: #7c3aed;
+  --accent-solid-hover: #8b4af2;
+
+  --background: #0a0a0f;
+  --foreground: #f4f4f6;
+  --card: rgba(255, 255, 255, 0.04);
+  --card-foreground: #f4f4f6;
+  --popover: #13131a;
+  --popover-foreground: #f4f4f6;
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --secondary: rgba(255, 255, 255, 0.06);
+  --secondary-foreground: #f4f4f6;
+  --muted: rgba(255, 255, 255, 0.06);
+  --muted-foreground: rgba(255, 255, 255, 0.55);
+  --accent: rgba(255, 255, 255, 0.08);
+  --accent-foreground: #ffffff;
+  --destructive: #f87171;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #7c3aed;
+  --chart-1: #ff3d81;
+  --chart-2: #7c3aed;
+  --chart-3: #3b82f6;
+  --chart-4: #f59e0b;
+  --chart-5: #10b981;
+  --sidebar: #0a0a0f;
+  --sidebar-foreground: #f4f4f6;
+  --sidebar-primary: #7c3aed;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #7c3aed;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    /* Single subtle ambient glow — kept very low. */
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 58, 237, 0.06), transparent 60%);
+    background-attachment: fixed;
+  }
+  .dark body {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 58, 237, 0.10), transparent 60%);
+  }
+}
+
+/* ============================================================
+   Driftframe utility classes
+   ============================================================ */
+
+/* Clash Display for headings */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Consistent responsive page padding — applies to EVERY page wrapper. */
+.driftframe-container {
+  width: 100%;
+  max-width: 80rem; /* 1280px */
+  margin-inline: auto;
+  padding-inline: 1.5rem; /* 24px mobile */
+}
+@media (min-width: 640px) {
+  .driftframe-container { padding-inline: 2rem; } /* 32px */
+}
+@media (min-width: 1024px) {
+  .driftframe-container { padding-inline: 3rem; } /* 48px */
+}
+@media (min-width: 1280px) {
+  .driftframe-container { padding-inline: 4rem; } /* 64px */
+}
+
+/* Wider variant for dashboards (max 1600px) */
+.driftframe-container-wide {
+  width: 100%;
+  max-width: 100rem; /* 1600px */
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+@media (min-width: 640px) {
+  .driftframe-container-wide { padding-inline: 2rem; }
+}
+@media (min-width: 1024px) {
+  .driftframe-container-wide { padding-inline: 3rem; }
+}
+@media (min-width: 1280px) {
+  .driftframe-container-wide { padding-inline: 4rem; }
+}
+
+/* ─────────── SANCTIONED GRADIENT (rare premium accent) ───────────
+
+   Used ONLY in 4 places (+ the logo wordmark text):
+     1) logo mark SVG fill         — see logo.tsx
+     2) credit pill background     — .driftframe-gradient-pill
+     3) progress ring stroke       — see progress-ring.tsx
+     4) favicon                    — see app/icon.svg
+   The plain `.driftframe-gradient` is intentionally subdued and used
+   sparingly; CTAs should use `.driftframe-solid` instead.
+*/
+.driftframe-gradient {
+  background-image: linear-gradient(135deg, var(--gradient-from) 0%, var(--gradient-via) 50%, var(--gradient-to) 100%);
+}
+.driftframe-gradient-text {
+  background-image: linear-gradient(135deg, var(--gradient-from) 0%, var(--gradient-via) 50%, var(--gradient-to) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Credit pill — softer gradient stops (sanctioned usage #2). */
+.driftframe-gradient-pill {
+  background-image: linear-gradient(135deg, #ff6b9d 0%, #7c3aed 50%, #4b8bf6 100%);
+}
+
+/* Solid brand accent — the v3 default for CTAs, active chips, etc. */
+.driftframe-solid {
+  background-color: var(--accent-solid);
+}
+.driftframe-solid-hover:hover {
+  background-color: var(--accent-solid-hover);
+}
+
+/* Glass surface — different recipe for light vs dark. */
+.driftframe-glass {
+  background: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
+}
+:root .driftframe-glass {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(10, 10, 15, 0.06);
+}
+.dark .driftframe-glass {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Gallery card glow-on-hover — softened to use the solid accent. */
+.driftframe-card-hover {
+  transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
+}
+.driftframe-card-hover:hover {
+  transform: scale(1.02);
+  border-color: rgba(124, 58, 237, 0.35);
+  box-shadow: 0 0 24px rgba(124, 58, 237, 0.15);
+}
+
+/* ─────────── Image reveal — v3: CSS-only fade-in on mount ───────────
+
+   The old `driftframe-reveal` used `filter: blur(20px)` + `opacity: 0.4`
+   gated by an onLoad handler. SVG data URLs don't always fire onLoad
+   reliably, which left images stuck at blur(20px)/opacity:0.4 in some
+   browsers — appearing broken.
+
+   The new approach is a CSS-only animation that runs immediately on
+   mount (no JS, no onLoad dependency). Images fade from opacity 0 → 1
+   over 300ms. Safe for data URLs, http(s) URLs, and lazy-loaded imgs.
+*/
+@keyframes driftframe-img-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.driftframe-img {
+  animation: driftframe-img-fade 300ms ease-out both;
+  min-height: 1px; /* never collapse to 0px height */
+}
+
+/* Backward-compat alias — old code still references .driftframe-reveal.
+   It now applies the same fade-in animation (no blur, no JS dependency). */
+.driftframe-reveal {
+  animation: driftframe-img-fade 300ms ease-out both;
+}
+.driftframe-reveal.driftframe-reveal--loaded {
+  /* no-op — the animation handles the transition */
+}
+
+/* Shimmer skeleton */
+@keyframes driftframe-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.driftframe-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(124, 58, 237, 0.06) 0%,
+    rgba(124, 58, 237, 0.14) 50%,
+    rgba(124, 58, 237, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: driftframe-shimmer 1.6s ease-in-out infinite;
+}
+.dark .driftframe-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: driftframe-shimmer 1.6s ease-in-out infinite;
+}
+
+/* Masonry via CSS columns */
+.driftframe-masonry {
+  columns: 2;
+  column-gap: 1rem;
+}
+@media (min-width: 640px) {
+  .driftframe-masonry { columns: 3; }
+}
+@media (min-width: 1024px) {
+  .driftframe-masonry { columns: 4; }
+}
+.driftframe-masonry > * {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+
+/* Modern global scrollbar — solid accent at 40% opacity (calm). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 58, 237, 0.4) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.4);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.6);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Custom scrollbar for scrollable lists (`max-h-96 overflow-y-auto`) */
+.driftframe-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 58, 237, 0.45) transparent;
+}
+.driftframe-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.driftframe-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.driftframe-scroll::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.4);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Subtle floating animation for hero accents */
+@keyframes driftframe-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.driftframe-float {
+  animation: driftframe-float 6s ease-in-out infinite;
+}
+
+/* ============================================================
+   Unique section background utilities (calm, v3)
+   ============================================================ */
+
+/* Dot grid — for features bento (reduced opacity) */
+.bg-dot-grid {
+  background-image: radial-gradient(circle, rgba(124, 58, 237, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.dark .bg-dot-grid {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Grid lines — for stats band */
+.bg-grid-lines {
+  background-image:
+    linear-gradient(rgba(10, 10, 15, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10, 10, 15, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.dark .bg-grid-lines {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Gradient mesh — RESERVED. v3 prefers plain bgs + radial-spotlight.
+   Kept as a class so old code doesn't break, but renders very subtle. */
+.bg-gradient-mesh {
+  background:
+    radial-gradient(at 20% 20%, rgba(255, 61, 129, 0.06) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(124, 58, 237, 0.07) 0px, transparent 50%),
+    radial-gradient(at 0% 80%, rgba(59, 130, 246, 0.05) 0px, transparent 50%);
+}
+.dark .bg-gradient-mesh {
+  background:
+    radial-gradient(at 20% 20%, rgba(255, 61, 129, 0.08) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(124, 58, 237, 0.10) 0px, transparent 50%),
+    radial-gradient(at 0% 80%, rgba(59, 130, 246, 0.07) 0px, transparent 50%);
+}
+
+/* Radial spotlight — single subtle top-center glow (8% opacity, down from 12%). */
+.bg-radial-spotlight {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124, 58, 237, 0.08), transparent 70%);
+}
+.dark .bg-radial-spotlight {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124, 58, 237, 0.14), transparent 70%);
+}
+
+/* Subtle film grain overlay — wrap a section in `.bg-noise` to apply */
+.bg-noise {
+  position: relative;
+}
+.bg-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.04'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.6;
+}
+
+/* Section divider — subtle solid accent hairline (was gradient) */
+.driftframe-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(124, 58, 237, 0.18), transparent);
+}
+.dark .driftframe-divider {
+  background: linear-gradient(to right, transparent, rgba(124, 58, 237, 0.25), transparent);
+}
+
+/* Glass pill — for badges / metadata chips */
+.driftframe-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(10, 10, 15, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.dark .driftframe-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ============================================================
+   Dashboard sidebar — v3
+   ============================================================ */
+.driftframe-sidebar-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition: background 150ms ease, color 150ms ease;
+  min-height: 40px;
+}
+.driftframe-sidebar-item:hover {
+  color: var(--foreground);
+  background: rgba(124, 58, 237, 0.06);
+}
+.driftframe-sidebar-item[data-active="true"] {
+  color: var(--foreground);
+  background: rgba(124, 58, 237, 0.10);
+}
+.driftframe-sidebar-item[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--accent-solid);
+}

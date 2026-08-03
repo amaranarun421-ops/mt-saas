@@ -1,0 +1,597 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input[type="search"]::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  /* Use a modern, premium cursor everywhere */
+  html, body {
+    cursor: default;
+  }
+
+  button,
+  a,
+  [role="button"],
+  select,
+  summary,
+  [tabindex]:not([tabindex="-1"]),
+  label[for],
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  /* Modern scrollbar (system-level) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(122, 90, 248, 0.35) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: rgba(122, 90, 248, 0.35);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(122, 90, 248, 0.6);
+    background-clip: padding-box;
+  }
+}
+
+@theme inline {
+  /* shadcn semantic tokens — kept for shadcn/ui compatibility */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-onest);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* ---- Scripta brand tokens ---- */
+  /* Violet primary ramp (kept from the base kit) */
+  --color-primary-50: #f4f3ff;
+  --color-primary-100: #ebe9fe;
+  --color-primary-200: #d9d6fe;
+  --color-primary-300: #bdb4fe;
+  --color-primary-400: #9b8afb;
+  --color-primary-500: #7a5af8;
+  --color-primary-600: #6938ef;
+  --color-primary-700: #5925dc;
+  --color-primary-800: #4a1fb8;
+
+  /* Amber accent — used ONLY for credit/usage indicators */
+  --color-amber-50: #fff8eb;
+  --color-amber-100: #feecbf;
+  --color-amber-200: #fdd884;
+  --color-amber-300: #f5a623;
+  --color-amber-400: #d98808;
+  --color-amber-500: #b5701a;
+
+  --color-success-50: #ecfdf3;
+  --color-success-500: #ecfdf3;
+  --color-success-600: #12b76a;
+
+  --color-error-50: #fef3f2;
+  --color-error-100: #fee4e2;
+  --color-error-500: #f04438;
+  --color-error-600: #d92d20;
+
+  --color-dark-primary: #171f2e;
+  --color-dark-secondary: #1a2231;
+
+  /* Type scale — extended */
+  --text-title-xl: 56px;
+  --text-title-xl--line-height: 64px;
+  --text-title-lg: 44px;
+  --text-title-lg--line-height: 52px;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+
+  /* Shadows — used consistently (no ad-hoc shadows) */
+  --shadow-theme-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  --shadow-theme-sm: 0px 8px 20px 0px rgba(0, 0, 0, 0.08);
+  --shadow-theme-md: 0px 8px 30px 0px rgba(12, 11, 25, 0.04);
+  --shadow-theme-lg:
+    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  --shadow-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
+
+  /* Gradients — kept from the base kit */
+  --background-image-gradient-1: linear-gradient(
+    180deg,
+    #f8fcff 0%,
+    #f1efff 50%,
+    #f8dcff 100%
+  );
+  --background-image-gradient-2: linear-gradient(
+    97deg,
+    #725cff 0%,
+    #b5b1ff 140.21%
+  );
+}
+
+:root {
+  --radius: 0.75rem;
+  /* shadcn semantic colors — remapped to violet brand */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: #7a5af8; /* Scripta violet */
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: #f4f3ff;
+  --accent-foreground: #5925dc;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: rgba(122, 90, 248, 0.4);
+  --chart-1: #7a5af8;
+  --chart-2: #f5a623;
+  --chart-3: #12b76a;
+  --chart-4: #5925dc;
+  --chart-5: #d9d6fe;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #171f2e;
+  --sidebar-primary: #7a5af8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f4f3ff;
+  --sidebar-accent-foreground: #5925dc;
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: rgba(122, 90, 248, 0.4);
+}
+
+.dark {
+  --background: #171f2e;
+  --foreground: oklch(0.985 0 0);
+  --card: #1a2231;
+  --card-foreground: oklch(0.985 0 0);
+  --popover: #1a2231;
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: #7a5af8;
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: #232c3e;
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: #232c3e;
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: #2a3450;
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #2a3450;
+  --input: #2a3450;
+  --ring: rgba(155, 138, 251, 0.4);
+  --chart-1: #9b8afb;
+  --chart-2: #f5a623;
+  --chart-3: #12b76a;
+  --chart-4: #5925dc;
+  --chart-5: #d9d6fe;
+  --sidebar: #1a2231;
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #7a5af8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2a3450;
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: #2a3450;
+  --sidebar-ring: rgba(155, 138, 251, 0.4);
+}
+
+/* ============ Brand utility classes ============ */
+
+.button-bg {
+  background-image: linear-gradient(97deg, #725cff 0%, #b5b1ff 140.21%);
+}
+
+.button-bg:hover {
+  background-image: linear-gradient(97deg, #6938ef 0%, #9b8afb 140.21%);
+}
+
+.gradient-bg-two {
+  background-image: var(
+    --Gradient-2,
+    linear-gradient(97deg, #725cff 0%, #b5b1ff 140.21%)
+  );
+}
+
+/* Glass-morphism card — used for dashboard sidebar and modals */
+.card-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.dark .card-glass {
+  background: rgba(26, 34, 49, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Tab image overlay (kept from base kit) */
+.tab-img-bg {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 88, 213, 0.2) 0%,
+    rgba(78, 110, 255, 0.2) 100%
+  );
+  position: relative;
+  z-index: 20;
+}
+
+[data-theme="light"] .tab-img-bg::after {
+  border-radius: 32px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #fff 93.51%);
+  content: "";
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  position: absolute;
+  z-index: 10;
+}
+
+[data-theme="dark"] .tab-img-bg::after {
+  background: linear-gradient(180deg, rgba(23, 31, 46, 0) 0%, #171f2e 93.51%);
+}
+
+.tab-img-overlay {
+  border-radius: 26px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.3) 67.58%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  backdrop-filter: blur(18.81816291809082px);
+  position: relative;
+  z-index: 20;
+}
+
+@utility wrapper {
+  @apply container px-5 mx-auto sm:px-7;
+}
+
+.shadow-one {
+  box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+}
+
+.benefits-bg {
+  border-radius: 20px;
+  background: linear-gradient(216deg, #a2e4e4 0%, #1c9ef6 100%);
+}
+
+@utility hero-glow-bg {
+  background-image: linear-gradient(
+    180deg,
+    rgba(122, 90, 248, 0) 0%,
+    #7a5af8 100%
+  );
+}
+
+.core-feature-wrapper {
+  border-radius: 20px;
+  box-shadow: 0px 30px 50px -32px rgba(107, 110, 148, 0.04);
+}
+
+.core-feature-icon {
+  background-image: linear-gradient(
+    180deg,
+    #7a5af8 0%,
+    rgba(122, 90, 248, 0) 100%
+  );
+  filter: drop-shadow(0px 23px 33px rgba(87, 80, 241, 0.59));
+  width: 76px;
+  height: 76px;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  border-radius: 50px;
+}
+
+.contact-wrapper {
+  border-radius: 24px;
+  box-shadow: 0px 32px 100px -12px rgba(16, 24, 40, 0.05);
+}
+
+.dashboard-gradient {
+  background-image: linear-gradient(
+    92deg,
+    var(--Colors-Brand-500, #7a5af8) 0%,
+    var(--Colors-Brand-200, #d9d6fe) 100%
+  );
+}
+
+[data-theme="light"] .widget-bg {
+  background-image: linear-gradient(
+    180deg,
+    #f8fcff 0%,
+    #f1efff 50%,
+    #f8dcff 100%
+  );
+}
+
+[data-theme="dark"] .widget-bg {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Custom scrollbar utility (component-level) */
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(122, 90, 248, 0.35);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(122, 90, 248, 0.6);
+    background-clip: padding-box;
+  }
+}
+
+/* Desktop hover behavior (for nav dropdowns) */
+@media (min-width: 1024px) {
+  .nav-item:hover .dropdown-menu {
+    display: block;
+  }
+  .nav-item:hover .dropdown-arrow {
+    transform: rotate(180deg);
+  }
+}
+
+/* Gradient border — used for the active / generating text card */
+.gradient-border {
+  position: relative;
+  background-clip: padding-box;
+  border: 1.5px solid transparent;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: -1.4px;
+  border-radius: inherit;
+  background: linear-gradient(
+    to right,
+    rgba(255, 87, 213, 0.5),
+    rgba(78, 110, 255, 0.5)
+  );
+  z-index: -1;
+}
+
+.dark .gradient-border::before {
+  z-index: 5;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+[data-theme="light"] .white-gradient {
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    #fff 44.75%
+  );
+}
+
+[data-theme="dark"] .white-gradient {
+  background-image: linear-gradient(
+    180deg,
+    rgba(23, 31, 46, 0) 0%,
+    #171f2e 44.75%
+  );
+}
+
+/* ============ Premium micro-interactions ============ */
+
+/* Button hover — gentle scale-up */
+.btn-press {
+  transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.btn-press:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+.btn-press:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Card hover lift */
+.card-lift {
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+.card-lift:hover {
+  box-shadow: var(--shadow-theme-md);
+  transform: translateY(-2px);
+}
+
+/* Skeleton shimmer (not a spinner) */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: rgba(122, 90, 248, 0.08);
+}
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shimmer 1.5s infinite;
+}
+.dark .skeleton-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 100%
+  );
+}
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Animated gradient border for the active / generating text card */
+.gradient-border-active {
+  position: relative;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: inherit;
+}
+.gradient-border-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #7a5af8,
+    #f5a623,
+    #7a5af8
+  );
+  background-size: 300% 100%;
+  animation: gradient-border-rotate 3s linear infinite;
+  z-index: -1;
+}
+@keyframes gradient-border-rotate {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 300% 0%; }
+}
+
+/* Fade-in for streaming AI content */
+.fade-in-token {
+  animation: fade-in-token 200ms ease;
+}
+@keyframes fade-in-token {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hide native select arrow (we use custom dropdowns) */
+select.no-native-arrow {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Premium dashboard input polish (v2 upgrade)
+ * Adds a subtle violet ring on focus + smoother transitions on inputs,
+ * textareas, and buttons inside the dashboard.
+ * ───────────────────────────────────────────────────────────────────────── */
+[data-slot="input"],
+[data-slot="textarea"] {
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+[data-slot="input"]:focus-visible,
+[data-slot="textarea"]:focus-visible {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(122, 90, 248, 0.15);
+}
+
+/* Primary buttons — solid violet with subtle ring on hover */
+.btn-primary-solid {
+  background-color: var(--color-primary-500);
+  color: white;
+  transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  box-shadow: 0 1px 2px rgba(122, 90, 248, 0.2);
+}
+.btn-primary-solid:hover:not(:disabled) {
+  background-color: var(--color-primary-600);
+  box-shadow: 0 4px 12px rgba(122, 90, 248, 0.25);
+}
+.btn-primary-solid:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Professional "elevated" CTA — used for Pro upgrade buttons.
+   Solid color, no gradient; lifts on hover with a soft shadow. */
+.btn-elevated {
+  background-color: var(--color-primary-600);
+  color: white;
+  border: 1px solid var(--color-primary-700);
+  transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 1px 2px rgba(74, 31, 184, 0.3);
+}
+.btn-elevated:hover:not(:disabled) {
+  background-color: var(--color-primary-700);
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 6px 16px rgba(74, 31, 184, 0.35);
+}
+.btn-elevated:active:not(:disabled) {
+  transform: translateY(0);
+}

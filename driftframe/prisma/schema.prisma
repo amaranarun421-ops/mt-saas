@@ -1,0 +1,139 @@
+// Driftframe — Prisma schema (SQLite)
+// Adapted from the Drizzle-based starter spec to Prisma for the sandbox.
+// SQLite does not support native enums — status fields use String with a
+// documented set of allowed values in code comments.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String              @id @default(cuid())
+  email            String              @unique
+  passwordHash     String?
+  name             String?
+  image            String?
+  creditsRemaining Int                 @default(10)
+  stripeCustomerId String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  generations      Generation[]
+  creditTransactions CreditTransaction[]
+  creditPurchases  CreditPurchase[]
+  subscriptions    Subscription[]
+  accounts         Account[]
+  sessions         Session[]
+}
+
+// Standard NextAuth v4 models (PrismaAdapter compatible)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Allowed status values: "pending" | "completed" | "failed"
+model Generation {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt         String
+  negativePrompt String?
+  // photographic | anime | 3d-render | painting | sketch
+  style          String
+  // 1:1 | 16:9 | 9:16 | 4:3
+  aspectRatio    String
+  status         String   @default("pending")
+  createdAt      DateTime @default(now())
+  images         Image[]
+}
+
+model Image {
+  id           String     @id @default(cuid())
+  generationId String
+  generation   Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  url          String
+  isFavorite   Boolean    @default(false)
+  isPublic     Boolean    @default(false)
+  width        Int?
+  height       Int?
+  createdAt    DateTime   @default(now())
+
+  @@index([isPublic])
+  @@index([generationId])
+}
+
+// type: "purchase" | "generation_spend" | "refund" | "subscription_refill"
+// amount: positive = credits gained, negative = credits spent
+model CreditTransaction {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int
+  type      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model CreditPurchase {
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // In production: Stripe Payment Intent ID. In demo: "mock_pi_<timestamp>"
+  stripePaymentIntentId String
+  creditsPurchased      Int
+  amountPaidCents       Int
+  createdAt             DateTime @default(now())
+
+  @@index([userId])
+}
+
+// status: "active" | "canceled"
+// plan: "pro"
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // In production: Stripe Subscription ID. In demo: "mock_sub_<timestamp>"
+  stripeSubscriptionId String
+  status               String   @default("active")
+  currentPeriodEnd     DateTime
+  plan                 String   @default("pro")
+  createdAt            DateTime @default(now())
+
+  @@index([userId])
+}
