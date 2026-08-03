@@ -5,7 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, Sparkles, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
@@ -22,20 +22,16 @@ const schema = z.object({
 
 type Inputs = z.infer<typeof schema>;
 
-// Demo credentials — always visible so buyers can one-click login.
 const DEMO_EMAIL = "demo@loopline.dev";
 const DEMO_PASSWORD = "loopline123";
 
-export function SignInForm() {
+export function SignInForm({ callbackUrl = "/dashboard" }: { callbackUrl?: string }) {
   const router = useRouter();
-  const params = useSearchParams();
-  const callbackUrl = params.get("callbackUrl") || "/dashboard";
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const form = useForm<Inputs>({
     resolver: zodResolver(schema),
-    // Prefilled with demo credentials so buyers can sign in with one click.
     defaultValues: { email: DEMO_EMAIL, password: DEMO_PASSWORD },
   });
 
@@ -59,7 +55,7 @@ export function SignInForm() {
   function fillDemo() {
     form.setValue("email", DEMO_EMAIL);
     form.setValue("password", DEMO_PASSWORD);
-    toast.info("Demo credentials filled — click Sign in to continue");
+    toast.info("Demo credentials filled - click Sign in to continue");
   }
 
   return (
@@ -74,7 +70,6 @@ export function SignInForm() {
         </p>
       </div>
 
-      {/* Demo credentials banner — always visible */}
       <div className="rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 to-brand-50/30 p-4 dark:border-brand-500/30 dark:bg-brand-500/10">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-white">
@@ -82,7 +77,7 @@ export function SignInForm() {
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-brand-800 dark:text-brand-200">
-              Try the demo — one click to sign in
+              Try the demo - one click to sign in
             </p>
             <div className="mt-1.5 space-y-0.5 font-mono text-xs text-brand-700 dark:text-brand-300">
               <p>Email: <span className="font-semibold">{DEMO_EMAIL}</span></p>
@@ -149,7 +144,7 @@ export function SignInForm() {
               id="password"
               type={showPw ? "text" : "password"}
               autoComplete="current-password"
-              placeholder="••••••••"
+              placeholder="........"
               disabled={loading}
               {...form.register("password")}
             />
@@ -173,7 +168,7 @@ export function SignInForm() {
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Signing in…
+              Signing in...
             </>
           ) : (
             "Sign in"

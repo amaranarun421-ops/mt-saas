@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 
 const schema = z
@@ -24,10 +24,8 @@ const schema = z
     path: ["confirm"],
   });
 
-export function ResetPasswordForm() {
+export function ResetPasswordForm({ token }: { token: string }) {
   const router = useRouter();
-  const params = useSearchParams();
-  const token = params.get("token") || "";
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -62,7 +60,7 @@ export function ResetPasswordForm() {
       }
       toast.success("Password reset. Please sign in.");
       router.push("/signin");
-    } catch (e) {
+    } catch {
       toast.error("Something went wrong. Please try again.");
       setLoading(false);
     }
@@ -128,7 +126,7 @@ export function ResetPasswordForm() {
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Resetting…
+              Resetting...
             </>
           ) : (
             "Reset password"

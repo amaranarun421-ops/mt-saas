@@ -1,13 +1,8 @@
 /**
  * Lightweight auto-seed hook for the Driftframe demo user.
  *
- * Imported by server components that should "just work" even on a fresh DB
- * (signin page, gallery page). It runs the idempotent `ensureSeedUser()`
- * from prisma/seed.ts but never throws — if the DB is unreachable the page
- * still renders, signin just won't prefill anything.
- *
- * The check is a single indexed `findUnique` by email — cheap enough to
- * run on every page load.
+ * In showcase deployments we do not require a live database, so this helper
+ * quietly no-ops when DATABASE_URL is missing.
  */
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
@@ -20,6 +15,10 @@ const DEMO_CREDITS = 100;
 let cached: Promise<void> | null = null;
 
 export function ensureSeedUser(): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    return Promise.resolve();
+  }
+
   if (!cached) {
     cached = (async () => {
       try {
@@ -45,9 +44,8 @@ export function ensureSeedUser(): Promise<void> {
             type: "purchase",
           },
         });
-        console.log(`[ensure-seed] created demo user ${DEMO_EMAIL}`);
+        console.log("[ensure-seed] created demo user " + DEMO_EMAIL);
       } catch (err) {
-        // Swallow — the page should still render. The next call will retry.
         console.warn("[ensure-seed] failed:", err);
         cached = null;
       }

@@ -1,12 +1,15 @@
 import { AuthShell } from "@/components/driftframe/auth-shell";
 import { SigninForm } from "@/components/driftframe/signin-form";
-import { ensureSeedUser, DEMO_USER } from "@/lib/ensure-seed";
+import { DEMO_USER } from "@/lib/ensure-seed";
 import Link from "next/link";
 
-export default async function SigninPage() {
-  // Auto-seed the demo user (idempotent) so the pre-filled credentials
-  // always work even on a fresh DB.
-  await ensureSeedUser();
+export default async function SigninPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  const params = await searchParams;
+  const callbackUrl = params?.callbackUrl || "/dashboard";
 
   return (
     <AuthShell
@@ -21,7 +24,11 @@ export default async function SigninPage() {
         </>
       }
     >
-      <SigninForm defaultEmail={DEMO_USER.email} defaultPassword={DEMO_USER.password} />
+      <SigninForm
+        defaultEmail={DEMO_USER.email}
+        defaultPassword={DEMO_USER.password}
+        callbackUrl={callbackUrl}
+      />
     </AuthShell>
   );
 }

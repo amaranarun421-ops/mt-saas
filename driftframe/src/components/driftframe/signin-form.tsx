@@ -1,13 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import {
   Mail,
   Lock,
-  Info,
   Wand2,
   Eye,
   EyeOff,
@@ -21,15 +20,15 @@ import { SocialAuth } from "@/components/driftframe/social-auth";
 interface SigninFormProps {
   defaultEmail?: string;
   defaultPassword?: string;
+  callbackUrl?: string;
 }
 
 export function SigninForm({
   defaultEmail = "",
   defaultPassword = "",
+  callbackUrl = "/dashboard",
 }: SigninFormProps) {
   const router = useRouter();
-  const params = useSearchParams();
-  const callbackUrl = params.get("callbackUrl") || "/dashboard";
 
   const [email, setEmail] = React.useState(defaultEmail);
   const [password, setPassword] = React.useState(defaultPassword);
@@ -69,7 +68,6 @@ export function SigninForm({
 
   return (
     <div className="space-y-5">
-      {/* ───── Prominent demo banner ───── */}
       {hasDemoCreds && (
         <div
           className="relative overflow-hidden rounded-2xl border border-[#7c3aed]/25 bg-[#7c3aed]/[0.06] p-4 pl-5"
@@ -86,7 +84,7 @@ export function SigninForm({
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground">
-                Demo account — email and password are pre-filled.
+                Demo account - email and password are pre-filled.
               </p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Just click <span className="font-medium text-foreground">Sign in</span>{" "}
@@ -117,7 +115,7 @@ export function SigninForm({
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-9 h-11"
+              className="h-11 pl-9"
               placeholder="you@example.com"
             />
           </div>
@@ -143,15 +141,15 @@ export function SigninForm({
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="px-9 h-11"
-              placeholder="••••••••"
+              className="h-11 px-9"
+              placeholder="........"
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? "Hide password" : "Show password"}
               title={showPassword ? "Hide password" : "Show password"}
-              className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-foreground/[0.06] transition-colors min-h-[40px] min-w-[40px]"
+              className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.06] hover:text-foreground min-h-[40px] min-w-[40px]"
             >
               {showPassword ? (
                 <EyeOff className="h-4 w-4" />
@@ -170,7 +168,7 @@ export function SigninForm({
           <button
             type="button"
             onClick={fillTestCredentials}
-            className="inline-flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             <Wand2 className="h-3 w-3" />
             Re-fill demo credentials

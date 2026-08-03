@@ -1,7 +1,14 @@
 import { SignInForm } from "./signin-form";
 
-export const metadata = { title: "Sign in — Loopline" };
+export const metadata = { title: "Sign in - Loopline" };
 
-export default function SignInPage() {
-  return <SignInForm />;
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  const params = await searchParams;
+  const callbackUrl = params?.callbackUrl || "/dashboard";
+
+  return <SignInForm callbackUrl={callbackUrl} />;
 }
