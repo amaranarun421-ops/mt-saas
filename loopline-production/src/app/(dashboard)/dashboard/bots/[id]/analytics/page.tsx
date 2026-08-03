@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import { DashboardTopbar } from "@/components/dashboard/sidebar";
-import { BotNavTabs } from "../../bot-nav-tabs";
+import { BotNavTabs } from "../bot-nav-tabs";
 import { AnalyticsPanel } from "./analytics-panel";
 
 export default async function BotAnalyticsPage({

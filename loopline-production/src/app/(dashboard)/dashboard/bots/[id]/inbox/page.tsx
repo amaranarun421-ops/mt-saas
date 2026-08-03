@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import { DashboardTopbar } from "@/components/dashboard/sidebar";
 import { InboxView } from "@/components/dashboard/inbox-view";
-import { BotNavTabs } from "../../bot-nav-tabs";
+import { BotNavTabs } from "../bot-nav-tabs";
 
 export default async function BotInboxPage({
   params,

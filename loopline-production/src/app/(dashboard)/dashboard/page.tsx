@@ -58,7 +58,7 @@ export default async function DashboardOverviewPage() {
     <>
       <DashboardTopbar
         title={`Welcome back, ${session.user.name?.split(" ")[0] || "there"}`}
-        subtitle={`${workspace?.name || "Loopline Demo Workspace"} · ${planDef.name} plan`}
+        subtitle={`${workspace?.name || "Loopline Demo Workspace"} - ${planDef.name} plan`}
         actions={<Button asChild size="sm" withArrow><Link href="/dashboard/bots"><Plus className="h-4 w-4" />New bot</Link></Button>}
       />
       <div className="container-loopline space-y-6 py-6">
@@ -97,7 +97,7 @@ export default async function DashboardOverviewPage() {
                     <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white" style={{ backgroundColor: bot.primaryColor }}><Bot className="h-5 w-5" /></span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-foreground">{bot.name}</p>
-                      <p className="text-xs text-muted-foreground">{bot._count.conversations} conversation{bot._count.conversations === 1 ? "" : "s"}{bot.conversations[0] && <> · last active {timeAgo(bot.conversations[0].updatedAt)}</>}</p>
+                      <p className="text-xs text-muted-foreground">{bot._count.conversations} conversation{bot._count.conversations === 1 ? "" : "s"}{bot.conversations[0] && <> - last active {timeAgo(bot.conversations[0].updatedAt)}</>}</p>
                     </div>
                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </Link>
@@ -121,7 +121,7 @@ export default async function DashboardOverviewPage() {
                       <span className="h-9 w-9 shrink-0 rounded-lg" style={{ backgroundColor: c.bot.primaryColor, opacity: 0.15 }} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2"><p className="truncate text-sm font-medium text-foreground">{c.visitorName || "Anonymous visitor"}</p></div>
-                        <p className="truncate text-xs text-muted-foreground">{c.bot.name} · {c.messages[0]?.content || "No messages"}</p>
+                        <p className="truncate text-xs text-muted-foreground">{c.bot.name} - {c.messages[0]?.content || "No messages"}</p>
                       </div>
                       <span className="text-xs text-muted-foreground">{formatDateTime(c.updatedAt)}</span>
                     </div>
