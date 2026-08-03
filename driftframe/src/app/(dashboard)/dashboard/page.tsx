@@ -6,16 +6,6 @@ import { DashboardHomeHeader } from "@/components/driftframe/dashboard-home-head
 import type { ImageCardData } from "@/components/driftframe/image-card";
 import { redirect } from "next/navigation";
 
-/**
- * /dashboard — main generation tool + home.
- *
- * v3: server component loads recent images + stats, then renders a top
- * section (welcome card + quick stats + recent activity feed) above the
- * generation studio.
- *
- * Supports ?prompt=&style=&ratio= query params (used by "generate
- * variation" from the history lightbox).
- */
 export default async function DashboardPage({
   searchParams,
 }: {
@@ -25,10 +15,29 @@ export default async function DashboardPage({
   if (!session?.user?.id) redirect("/signin?callbackUrl=/dashboard");
 
   const sp = await searchParams;
+  let recent: Array<{
+    id: string;
+    url: string;
+    width: number;
+    height: number;
+    isFavorite: boolean;
+    isPublic: boolean;
+    generation: { prompt: string; style: string; aspectRatio: string; createdAt: Date };
+  }> = [];
+  let totalCount = 0;
+  let favoriteCount = 0;
+  let publicCount = 0;
+  let recentGenerations: Array<{
+    id: string;
+    prompt: string;
+    style: string;
+    aspectRatio: string;
+    createdAt: Date;
+    images: Array<{ url: string; width: number; height: number }>;
+  }> = [];
 
-  // Load recent images, stats, and activity feed in parallel.
-  const [recent, totalCount, favoriteCount, publicCount, recentGenerations] =
-    await Promise.all([
+  try {
+    [recent, totalCount, favoriteCount, publicCount, recentGenerations] = await Promise.all([
       db.image.findMany({
         where: { generation: { userId: session.user.id } },
         orderBy: { createdAt: "desc" },
@@ -40,18 +49,12 @@ export default async function DashboardPage({
           height: true,
           isFavorite: true,
           isPublic: true,
-          generation: {
-            select: { prompt: true, style: true, aspectRatio: true, createdAt: true },
-          },
+          generation: { select: { prompt: true, style: true, aspectRatio: true, createdAt: true } },
         },
       }),
       db.image.count({ where: { generation: { userId: session.user.id } } }),
-      db.image.count({
-        where: { generation: { userId: session.user.id }, isFavorite: true },
-      }),
-      db.image.count({
-        where: { generation: { userId: session.user.id }, isPublic: true },
-      }),
+      db.image.count({ where: { generation: { userId: session.user.id }, isFavorite: true } }),
+      db.image.count({ where: { generation: { userId: session.user.id }, isPublic: true } }),
       db.generation.findMany({
         where: { userId: session.user.id },
         orderBy: { createdAt: "desc" },
@@ -66,6 +69,9 @@ export default async function DashboardPage({
         },
       }),
     ]);
+  } catch (error) {
+    console.error("[driftframe dashboard] showcase fallback", error);
+  }
 
   const initialImages: ImageCardData[] = recent.map((img) => ({
     id: img.id,
@@ -79,10 +85,7 @@ export default async function DashboardPage({
     aspectRatio: img.generation.aspectRatio,
   }));
 
-  const creditsRemaining = session.user.creditsRemaining ?? 0;
-  // Demo: assume 100 starting credits (matches DEMO_CREDITS) — new users
-  // start with 10, but for the home-card math we use 100 as a sensible
-  // ceiling to keep the "used" stat meaningful.
+  const creditsRemaining = session.user.creditsRemaining ?? 100;
   const startingCredits = 100;
   const creditsUsed = Math.max(0, startingCredits - creditsRemaining);
 

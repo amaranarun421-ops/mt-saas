@@ -11,29 +11,28 @@ export default async function BillingPage() {
   if (!session?.user?.workspaceId) redirect("/signin");
   const wsId = session.user.workspaceId;
 
-  const [workspace, botCount, monthConvoCount] = await Promise.all([
-    db.workspace.findUnique({
-      where: { id: wsId },
-      include: { subscription: true },
-    }),
-    db.bot.count({ where: { workspaceId: wsId } }),
-    db.conversation.count({
-      where: {
-        bot: { workspaceId: wsId },
-        createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
-      },
-    }),
-  ]);
+  let workspace: { subscription: { plan: keyof typeof PLANS; status: string; currentPeriodEnd: Date | null; cancelAtPeriodEnd: boolean } | null } | null = {
+    subscription: { plan: "FREE" as keyof typeof PLANS, status: "ACTIVE", currentPeriodEnd: null, cancelAtPeriodEnd: false },
+  };
+  let botCount = 0;
+  let monthConvoCount = 0;
 
-  const plan = workspace?.subscription?.plan || "FREE";
+  try {
+    [workspace, botCount, monthConvoCount] = await Promise.all([
+      db.workspace.findUnique({ where: { id: wsId }, include: { subscription: true } }),
+      db.bot.count({ where: { workspaceId: wsId } }),
+      db.conversation.count({ where: { bot: { workspaceId: wsId }, createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } } }),
+    ]);
+  } catch (error) {
+    console.error("[loopline billing] showcase fallback", error);
+  }
+
+  const plan = (workspace?.subscription?.plan || "FREE") as keyof typeof PLANS;
   const usage = computeUsageState(plan, botCount, monthConvoCount);
 
   return (
     <>
-      <DashboardTopbar
-        title="Billing"
-        subtitle={isStripeConfigured() ? "Connected to Stripe" : "Simulated billing mode (add STRIPE_SECRET_KEY to go live)"}
-      />
+      <DashboardTopbar title="Billing" subtitle={isStripeConfigured() ? "Connected to Stripe" : "Simulated billing mode (add STRIPE_SECRET_KEY to go live)"} />
       <div className="container-loopline py-6">
         <BillingClient
           currentPlan={plan}

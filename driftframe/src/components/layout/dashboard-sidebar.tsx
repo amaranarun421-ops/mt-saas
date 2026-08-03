@@ -9,30 +9,15 @@ import {
   Heart,
   Globe2,
   Sparkles,
-  CreditCard,
   Receipt,
-  KeyRound,
   Settings,
   BarChart3,
-  Bell,
-  Trash2,
   X,
 } from "lucide-react";
 import { Logo } from "@/components/driftframe/logo";
-import { cn } from "@/lib/utils";
 
-/**
- * Dashboard sidebar — v3.
- *
- * Full nav: Generate · History · Favorites · Showcase · Credits · Billing ·
- * API Keys · Usage · Notifications · Trash · Settings.
- *
- * Each item has a Lucide icon. Active item gets a subtle left-border + filled bg
- * via the `.driftframe-sidebar-item` CSS class.
- *
- * On mobile (lg breakpoint) the sidebar collapses into a Sheet-style drawer
- * toggled by the hamburger in the top bar.
- */
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
+
 interface NavItem {
   href: string;
   label: string;
@@ -49,18 +34,13 @@ const NAV_PRIMARY: NavItem[] = [
 const NAV_ACCOUNT: NavItem[] = [
   { href: "/dashboard/credits", label: "Credits", icon: Sparkles },
   { href: "/dashboard/billing", label: "Billing", icon: Receipt },
-  { href: "/dashboard/api-keys", label: "API Keys", icon: KeyRound },
 ];
 
 const NAV_INSIGHTS: NavItem[] = [
   { href: "/dashboard/usage", label: "Usage", icon: BarChart3 },
-  { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
-  { href: "/dashboard/trash", label: "Trash", icon: Trash2 },
 ];
 
-const NAV_BOTTOM: NavItem[] = [
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
-];
+const NAV_BOTTOM: NavItem[] = [{ href: "/dashboard/settings", label: "Settings", icon: Settings }];
 
 function isActive(pathname: string | null, href: string): boolean {
   if (!pathname) return false;
@@ -68,35 +48,17 @@ function isActive(pathname: string | null, href: string): boolean {
   return pathname.startsWith(href);
 }
 
-function NavGroup({
-  items,
-  title,
-  onNavigate,
-}: {
-  items: NavItem[];
-  title?: string;
-  onNavigate?: () => void;
-}) {
+function NavGroup({ items, title, onNavigate }: { items: NavItem[]; title?: string; onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
     <div>
-      {title && (
-        <p className="px-3 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
-          {title}
-        </p>
-      )}
+      {title && <p className="px-3 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">{title}</p>}
       <nav className="space-y-0.5">
         {items.map((item) => {
           const active = isActive(pathname, item.href);
           const Icon = item.icon;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              data-active={active}
-              className="driftframe-sidebar-item"
-            >
+            <Link key={item.href} href={item.href} onClick={onNavigate} data-active={active} className="driftframe-sidebar-item">
               <Icon className="h-4 w-4 shrink-0" />
               <span>{item.label}</span>
             </Link>
@@ -107,16 +69,9 @@ function NavGroup({
   );
 }
 
-interface DashboardSidebarProps {
-  /** Mobile drawer open state — controlled by the top bar hamburger. */
-  mobileOpen: boolean;
-  onMobileClose: () => void;
-}
-
-export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebarProps) {
+export function DashboardSidebar({ mobileOpen, onMobileClose }: { mobileOpen: boolean; onMobileClose: () => void }) {
   return (
     <>
-      {/* Desktop sidebar — fixed left column */}
       <aside className="hidden w-64 shrink-0 border-r border-border bg-card/40 lg:flex lg:flex-col">
         <div className="flex h-16 items-center border-b border-border px-5">
           <Link href="/dashboard" aria-label="Driftframe dashboard">
@@ -131,29 +86,21 @@ export function DashboardSidebar({ mobileOpen, onMobileClose }: DashboardSidebar
         </div>
         <div className="border-t border-border p-4">
           <div className="rounded-xl bg-muted/40 p-3 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground">Driftframe v3</p>
-            <p className="mt-0.5">25-page premium template.</p>
+            <p className="font-medium text-foreground">Driftframe showcase</p>
+            <p className="mt-0.5">
+              {SHOWCASE_MODE ? "Demo-safe routes only." : "Full dashboard enabled."}
+            </p>
           </div>
         </div>
       </aside>
 
-      {/* Mobile drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={onMobileClose}
-            aria-hidden
-          />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onMobileClose} aria-hidden />
           <aside className="absolute left-0 top-0 flex h-full w-72 max-w-[85vw] flex-col border-r border-border bg-background shadow-2xl">
             <div className="flex h-16 items-center justify-between border-b border-border px-5">
               <Logo size="sm" />
-              <button
-                type="button"
-                aria-label="Close menu"
-                onClick={onMobileClose}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-foreground/5 min-h-[40px] min-w-[40px]"
-              >
+              <button type="button" aria-label="Close menu" onClick={onMobileClose} className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-foreground/5 min-h-[40px] min-w-[40px]">
                 <X className="h-5 w-5" />
               </button>
             </div>

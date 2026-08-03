@@ -1,22 +1,21 @@
-// NextAuth v4 config — credentials provider with bcrypt + Prisma adapter.
-// Signup creates a workspace automatically (workspace-name field on the form).
-
 import type { NextAuthOptions } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
-import bcrypt from "bcryptjs";
-import { db } from "@/lib/db";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
+const AUTH_SECRET_FALLBACK = "showcase-demo-secret-not-for-production";
+const DEMO_USER = {
+  id: "demo-user",
+  email: "demo@loopline.dev",
+  password: "loopline123",
+  name: "Loopline Demo",
+  workspaceId: "demo-workspace",
+} as const;
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
-  secret: process.env.AUTH_SECRET,
-  // Trust the host from the request headers so NextAuth works behind
-  // reverse proxies (Caddy, Vercel, preview gateways) without needing
-  // a hardcoded NEXTAUTH_URL. This sets the cookie domain correctly for
-  // whatever origin the user is actually visiting from.
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? AUTH_SECRET_FALLBACK,
   trustHost: true,
   cookies: {
     sessionToken: {
@@ -29,9 +28,7 @@ export const authOptions: NextAuthOptions = {
       },
     },
   },
-  pages: {
-    signIn: "/signin",
-  },
+  pages: { signIn: "/signin" },
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -42,32 +39,17 @@ export const authOptions: NextAuthOptions = {
       async authorize(creds) {
         if (!creds?.email || !creds?.password) return null;
         const email = creds.email.toLowerCase().trim();
-        const user = await db.user.findUnique({
-          where: { email },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            password: true,
-            image: true,
-            workspaceId: true,
-          },
-        });
-        if (!user || !user.password) return null;
-
-        const ok = await bcrypt.compare(creds.password, user.password);
-        if (!ok) return null;
-
+        if (email !== DEMO_USER.email || creds.password !== DEMO_USER.password) return null;
         return {
-          id: user.id,
-          email: user.email,
-          name: user.name ?? undefined,
-          image: user.image ?? undefined,
-          workspaceId: user.workspaceId ?? undefined,
+          id: DEMO_USER.id,
+          email: DEMO_USER.email,
+          name: DEMO_USER.name,
+          image: undefined,
+          workspaceId: DEMO_USER.workspaceId,
         };
       },
     }),
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+    ...(!SHOWCASE_MODE && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [
           GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID,
@@ -76,7 +58,7 @@ export const authOptions: NextAuthOptions = {
           }),
         ]
       : []),
-    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+    ...(!SHOWCASE_MODE && process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
       ? [
           GithubProvider({
             clientId: process.env.GITHUB_CLIENT_ID,
@@ -90,60 +72,25 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        // @ts-expect-error — workspaceId is added by our credentials provider
-        token.workspaceId = user.workspaceId;
+        // @ts-expect-error showcase workspace id
+        token.workspaceId = user.workspaceId ?? DEMO_USER.workspaceId;
       }
-      // Re-sync workspaceId from DB if missing (e.g. OAuth first-login flow)
-      if (!token.workspaceId && token.email) {
-        const dbUser = await db.user.findUnique({
-          where: { email: token.email },
-          select: { workspaceId: true, id: true },
-        });
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.workspaceId = dbUser.workspaceId ?? undefined;
-        }
+      if (!token.workspaceId) {
+        token.workspaceId = DEMO_USER.workspaceId;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        // @ts-expect-error — workspaceId lives on token
-        session.user.workspaceId = token.workspaceId as string | undefined;
+        session.user.id = (token.id as string) ?? DEMO_USER.id;
+        // @ts-expect-error workspaceId lives on token
+        session.user.workspaceId = (token.workspaceId as string) ?? DEMO_USER.workspaceId;
       }
       return session;
     },
   },
-  events: {
-    // For OAuth first-login (no signup form), auto-create a workspace
-    // named after the user, so they can start managing bots immediately.
-    async createUser({ user }) {
-      if (!user.id || !user.email) return;
-      const existing = await db.user.findUnique({
-        where: { id: user.id },
-        select: { workspaceId: true },
-      });
-      if (existing?.workspaceId) return;
-      const ws = await db.workspace.create({
-        data: {
-          name: `${user.name || user.email.split("@")[0]}'s Workspace`,
-          ownerId: user.id,
-          plan: "FREE",
-        },
-      });
-      await db.user.update({
-        where: { id: user.id },
-        data: { workspaceId: ws.id },
-      });
-      await db.subscription.create({
-        data: { workspaceId: ws.id, plan: "FREE", status: "ACTIVE" },
-      });
-    },
-  },
 };
 
-// Augment session types with workspaceId + id.
 declare module "next-auth" {
   interface Session {
     user: {

@@ -9,21 +9,33 @@ export default async function HistoryPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/signin?callbackUrl=/dashboard/history");
 
-  const rows = await db.image.findMany({
-    where: { generation: { userId: session.user.id } },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      url: true,
-      width: true,
-      height: true,
-      isFavorite: true,
-      isPublic: true,
-      generation: {
-        select: { prompt: true, style: true, aspectRatio: true },
+  let rows: Array<{
+    id: string;
+    url: string;
+    width: number;
+    height: number;
+    isFavorite: boolean;
+    isPublic: boolean;
+    generation: { prompt: string; style: string; aspectRatio: string };
+  }> = [];
+
+  try {
+    rows = await db.image.findMany({
+      where: { generation: { userId: session.user.id } },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        url: true,
+        width: true,
+        height: true,
+        isFavorite: true,
+        isPublic: true,
+        generation: { select: { prompt: true, style: true, aspectRatio: true } },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("[driftframe history] showcase fallback", error);
+  }
 
   const images: ImageCardData[] = rows.map((img) => ({
     id: img.id,

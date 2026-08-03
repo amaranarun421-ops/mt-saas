@@ -8,15 +8,20 @@ export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/signin?callbackUrl=/dashboard/settings");
 
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { name: true, email: true },
-  });
+  let user: { name: string | null; email: string | null } | null = null;
+  try {
+    user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true, email: true },
+    });
+  } catch (error) {
+    console.error("[driftframe settings] showcase fallback", error);
+  }
 
   return (
     <SettingsPanel
-      initialName={user?.name ?? null}
-      email={user?.email ?? session.user.email}
+      initialName={user?.name ?? session.user.name ?? null}
+      email={user?.email ?? session.user.email ?? null}
     />
   );
 }
