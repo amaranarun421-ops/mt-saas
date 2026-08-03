@@ -6,6 +6,7 @@ import { z } from 'zod';
 import type { Provider } from 'next-auth/providers';
 
 const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== '0';
+const AUTH_SECRET_FALLBACK = 'showcase-demo-secret-not-for-production';
 
 const DEMO_USER = {
   id: 'demo-user',
@@ -47,10 +48,7 @@ const providers: Provider[] = [
       if (!parsed.success) return null;
 
       const { email, password } = parsed.data;
-      if (
-        email.toLowerCase() === DEMO_USER.email &&
-        password === DEMO_USER.password
-      ) {
+      if (email.toLowerCase() === DEMO_USER.email && password === DEMO_USER.password) {
         return createDemoSessionUser();
       }
 
@@ -82,6 +80,8 @@ if (!SHOWCASE_MODE && process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   session: { strategy: 'jwt' },
+  trustHost: true,
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? AUTH_SECRET_FALLBACK,
   pages: {
     signIn: '/signin',
     verifyRequest: '/verify-email',
