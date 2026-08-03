@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { DashboardSidebar, type SidebarBot } from "@/components/dashboard/sidebar";
 
 const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
@@ -19,6 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!SHOWCASE_MODE) {
     try {
+    const { db } = await import("@/lib/db");
       const workspaceId = session.user.workspaceId;
       if (!workspaceId) redirect("/signin");
 

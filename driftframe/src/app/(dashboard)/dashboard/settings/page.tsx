@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { SettingsPanel } from "@/components/driftframe/settings-panel";
 import { redirect } from "next/navigation";
 
@@ -10,6 +9,7 @@ export default async function SettingsPage() {
 
   let user: { name: string | null; email: string | null } | null = null;
   try {
+    const { db } = await import("@/lib/db");
     user = await db.user.findUnique({
       where: { id: session.user.id },
       select: { name: true, email: true },

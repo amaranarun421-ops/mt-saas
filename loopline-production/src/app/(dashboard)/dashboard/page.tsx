@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,7 @@ export default async function DashboardOverviewPage() {
   let monthConversations = 0;
 
   try {
+    const { db } = await import("@/lib/db");
     [workspace, bots, conversations, monthConversations] = await Promise.all([
       db.workspace.findUnique({ where: { id: wsId }, include: { subscription: true } }),
       db.bot.findMany({

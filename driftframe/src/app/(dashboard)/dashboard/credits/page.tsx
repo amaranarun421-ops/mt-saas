@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { CreditsDashboard, type TransactionRow } from "@/components/driftframe/credits-dashboard";
 import { redirect } from "next/navigation";
 
@@ -12,6 +11,7 @@ export default async function CreditsPage() {
   let subscription: { id: string } | null = null;
 
   try {
+    const { db } = await import("@/lib/db");
     [transactions, subscription] = await Promise.all([
       db.creditTransaction.findMany({
         where: { userId: session.user.id },

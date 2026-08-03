@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { db } from "@/lib/db";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const schema = z.object({
   name: z.string().min(1).max(80),
@@ -24,6 +25,17 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
+
+    if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+      return NextResponse.json({
+        ok: true,
+        showcase: true,
+        message: "Showcase mode active. Use the demo account to sign in.",
+        demoEmail: "demo@loopline.dev",
+      });
+    }
+
+    const { db } = await import("@/lib/db");
     const { name, workspaceName, email, password } = parsed.data;
     const normalizedEmail = email.toLowerCase().trim();
 
@@ -40,7 +52,6 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user + workspace + free subscription in one transaction
     const user = await db.$transaction(async (tx) => {
       const newUser = await tx.user.create({
         data: {
@@ -71,7 +82,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ ok: true, userId: user.id });
-  } catch (e: any) {
+  } catch (e) {
     console.error("[signup]", e);
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
@@ -79,3 +90,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

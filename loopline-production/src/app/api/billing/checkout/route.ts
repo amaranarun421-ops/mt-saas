@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { createCheckoutSession } from "@/lib/stripe";
 import { z } from "zod";
-import type { Plan } from "@prisma/client";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
+const PLAN_VALUES = ["PRO", "AGENCY"] as const;
+type Plan = (typeof PLAN_VALUES)[number];
 
 const schema = z.object({
-  plan: z.enum(["PRO", "AGENCY"]),
+  plan: z.enum(PLAN_VALUES),
 });
 
 export async function POST(req: Request) {
@@ -22,8 +24,16 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
-  const plan = parsed.data.plan as Plan;
+  const plan: Plan = parsed.data.plan;
 
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({
+      url: `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/dashboard/billing/success?showcase=1&plan=${plan}`,
+      showcase: true,
+    });
+  }
+
+  const { db } = await import("@/lib/db");
   const workspace = await db.workspace.findUnique({
     where: { id: wsId },
     include: { subscription: true },

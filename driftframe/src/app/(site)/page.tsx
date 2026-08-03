@@ -21,10 +21,11 @@ import {
   CREDIT_PACKS,
   SUBSCRIPTION_PLAN,
 } from "@/lib/constants";
-import { db } from "@/lib/db";
 import type { ImageCardData } from "@/components/driftframe/image-card";
 import { generateSvgArt } from "@/lib/ai/image-model";
 import { ShowcaseGallery } from "@/components/driftframe/showcase-gallery";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const FEATURES = [
   {
@@ -132,22 +133,43 @@ const LOGO_CLOUD = [
 export default async function LandingPage() {
   // Pull 8 public images for the showcase section; fall back to seeded
   // demo SVG art if the gallery is empty so the section is never blank.
-  const rows = await db.image.findMany({
-    where: { isPublic: true },
-    orderBy: { createdAt: "desc" },
-    take: 8,
-    select: {
-      id: true,
-      url: true,
-      width: true,
-      height: true,
-      isFavorite: true,
-      isPublic: true,
-      generation: {
-        select: { prompt: true, style: true, aspectRatio: true },
+  let rows: Array<{
+    id: string;
+    url: string;
+    width: number;
+    height: number;
+    isFavorite: boolean;
+    isPublic: boolean;
+    generation: {
+      prompt: string;
+      style: string;
+      aspectRatio: string;
+    };
+  }> = [];
+
+  if (!SHOWCASE_MODE && process.env.DATABASE_URL) {
+  try {
+    const { db } = await import("@/lib/db");
+    rows = await db.image.findMany({
+      where: { isPublic: true },
+      orderBy: { createdAt: "desc" },
+      take: 8,
+      select: {
+        id: true,
+        url: true,
+        width: true,
+        height: true,
+        isFavorite: true,
+        isPublic: true,
+        generation: {
+          select: { prompt: true, style: true, aspectRatio: true },
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("[driftframe landing] showcase fallback", error);
+  }
+}
 
   let showcase: ImageCardData[];
   if (rows.length > 0) {

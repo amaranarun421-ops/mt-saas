@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { db } from "@/lib/db";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const schema = z.object({
   token: z.string().min(10),
@@ -22,6 +23,16 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
+
+    if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+      return NextResponse.json({
+        ok: true,
+        showcase: true,
+        message: "Showcase mode active. Password reset is simulated only.",
+      });
+    }
+
+    const { db } = await import("@/lib/db");
     const { token, password } = parsed.data;
 
     const reset = await db.passwordResetToken.findUnique({
@@ -58,7 +69,7 @@ export async function POST(req: Request) {
     ]);
 
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
+  } catch (e) {
     console.error("[reset-password]", e);
     return NextResponse.json(
       { error: "Something went wrong" },
@@ -66,3 +77,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

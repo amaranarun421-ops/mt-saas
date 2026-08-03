@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { DashboardTopbar } from "@/components/dashboard/sidebar";
 import { WorkspaceAnalyticsClient } from "./workspace-analytics-client";
@@ -12,6 +11,7 @@ export default async function WorkspaceAnalyticsPage() {
 
   let bots: Array<{ id: string; name: string; primaryColor: string }> = [];
   try {
+    const { db } = await import("@/lib/db");
     bots = await db.bot.findMany({
       where: { workspaceId: wsId },
       select: { id: true, name: true, primaryColor: true },

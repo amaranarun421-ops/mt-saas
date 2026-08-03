@@ -1,10 +1,9 @@
-/**
+﻿/**
  * Lightweight auto-seed hook for the Driftframe demo user.
  *
  * In showcase deployments we do not require a live database, so this helper
  * quietly no-ops when DATABASE_URL is missing.
  */
-import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
 const DEMO_EMAIL = "demo@driftframe.app";
@@ -22,6 +21,8 @@ export function ensureSeedUser(): Promise<void> {
   if (!cached) {
     cached = (async () => {
       try {
+        const { db } = await import("@/lib/db");
+
         const existing = await db.user.findUnique({
           where: { email: DEMO_EMAIL },
           select: { id: true },

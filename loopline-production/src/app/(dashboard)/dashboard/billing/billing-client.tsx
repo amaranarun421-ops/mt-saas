@@ -7,7 +7,16 @@ import { Check, Loader2, CreditCard, ExternalLink, AlertCircle } from "lucide-re
 import { PLANS, type UsageState } from "@/lib/billing";
 import { toast } from "sonner";
 import { cn, formatDate } from "@/lib/utils";
-import type { Plan, SubscriptionStatus } from "@prisma/client";
+
+type Plan = keyof typeof PLANS;
+type SubscriptionStatus =
+  | "ACTIVE"
+  | "CANCELED"
+  | "PAST_DUE"
+  | "TRIALING"
+  | "INCOMPLETE"
+  | "INCOMPLETE_EXPIRED"
+  | "UNPAID";
 
 interface Props {
   currentPlan: Plan;
@@ -74,7 +83,7 @@ export function BillingClient({
         return;
       }
       if (json.simulated) {
-        toast.info("Stripe not configured — managing plan from this page.");
+        toast.info("Stripe not configured - managing plan from this page.");
         setPortalLoading(false);
       } else {
         window.location.href = json.url;
@@ -112,7 +121,7 @@ export function BillingClient({
             {subscription?.status === "PAST_DUE" && (
               <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
                 <AlertCircle className="h-3 w-3" />
-                Payment past due — update in portal
+                Payment past due - update in portal
               </p>
             )}
           </div>
@@ -153,7 +162,7 @@ export function BillingClient({
               </p>
               <p className="mt-0.5 text-amber-700 dark:text-amber-300">
                 Stripe isn&apos;t configured. Upgrades complete instantly without
-                real payment — perfect for local dev and template demos. Add{" "}
+                real payment - perfect for local dev and template demos. Add{" "}
                 <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-xs dark:bg-amber-500/20">
                   STRIPE_SECRET_KEY
                 </code>{" "}
@@ -237,7 +246,7 @@ export function BillingClient({
                 {upgrading === plan.id ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Redirecting…
+                    Redirecting...
                   </>
                 ) : isCurrent ? (
                   "Current plan"
@@ -271,7 +280,7 @@ function UsageBar({
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium text-foreground">{label}</span>
         <span className="text-muted-foreground">
-          {used} / {limit === null ? "∞" : limit}
+          {used} / {limit === null ? "unlimited" : limit}
         </span>
       </div>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
@@ -285,7 +294,7 @@ function UsageBar({
       </div>
       {limit !== null && isWarning && (
         <p className="mt-1 text-xs text-amber-600">
-          Approaching limit — consider upgrading.
+          Approaching limit - consider upgrading.
         </p>
       )}
     </div>

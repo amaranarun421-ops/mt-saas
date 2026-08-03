@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { DashboardTopbar } from "@/components/dashboard/sidebar";
 import { SettingsClient } from "./settings-client";
@@ -23,6 +22,7 @@ export default async function SettingsPage() {
   };
 
   try {
+    const { db } = await import("@/lib/db");
     const [dbWorkspace, dbUser] = await Promise.all([
       db.workspace.findUnique({ where: { id: wsId }, select: { id: true, name: true, createdAt: true } }),
       db.user.findUnique({ where: { id: session.user.id }, select: { id: true, name: true, email: true, image: true } }),

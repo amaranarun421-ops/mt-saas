@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { ConversationStatus } from "@prisma/client";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
+const CONVERSATION_STATUS_VALUES = ["OPEN", "NEEDS_HUMAN", "RESOLVED", "SPAM"] as const;
+type ConversationStatus = (typeof CONVERSATION_STATUS_VALUES)[number];
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
@@ -14,6 +16,11 @@ export async function GET(req: Request) {
   const status = searchParams.get("status") as ConversationStatus | "all" | null;
   const botId = searchParams.get("botId");
 
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({ conversations: [] });
+  }
+
+  const { db } = await import("@/lib/db");
   const where: Record<string, unknown> = {
     bot: { workspaceId: wsId },
   };
@@ -51,7 +58,18 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "conversationId required" }, { status: 400 });
   }
 
-  // Verify ownership
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({
+      conversation: {
+        id: conversationId,
+        status: status || "OPEN",
+        visitorName: visitorName || "Demo visitor",
+      },
+      showcase: true,
+    });
+  }
+
+  const { db } = await import("@/lib/db");
   const conv = await db.conversation.findUnique({
     where: { id: conversationId },
     select: { bot: { select: { workspaceId: true } } },

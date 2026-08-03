@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { db } from "@/lib/db";
 import { SIGNUP_FREE_CREDITS } from "@/lib/constants";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const SignupSchema = z.object({
   email: z.string().email(),
@@ -10,14 +11,6 @@ const SignupSchema = z.object({
   name: z.string().min(1).max(80).optional(),
 });
 
-/**
- * POST /api/auth/signup
- * Creates a new user with a bcrypt-hashed password, auto-grants the free
- * starting credit balance, and records the grant as a CreditTransaction.
- *
- * No email verification in the demo — the client should immediately
- * redirect to /signin (or call signIn("credentials") directly).
- */
 export async function POST(req: Request) {
   let body: unknown;
   try {
@@ -34,6 +27,16 @@ export async function POST(req: Request) {
     );
   }
 
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({
+      ok: true,
+      showcase: true,
+      message: "Showcase mode active. Use the demo account to sign in.",
+      demoEmail: "demo@driftframe.app",
+    });
+  }
+
+  const { db } = await import("@/lib/db");
   const { email, password, name } = parsed.data;
   const normalizedEmail = email.toLowerCase().trim();
 
@@ -60,7 +63,7 @@ export async function POST(req: Request) {
     data: {
       userId: user.id,
       amount: SIGNUP_FREE_CREDITS,
-      type: "purchase", // free signup grant — recorded as a purchase-style gain
+      type: "purchase",
     },
   });
 

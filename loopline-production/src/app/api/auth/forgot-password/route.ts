@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db } from "@/lib/db";
 import { generateToken } from "@/lib/utils";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const schema = z.object({
   email: z.string().email(),
@@ -19,35 +20,41 @@ export async function POST(req: Request) {
     }
     const email = parsed.data.email.toLowerCase().trim();
 
-    // Always return 200 — don't leak whether the email exists
+    if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+      return NextResponse.json({
+        ok: true,
+        showcase: true,
+        message: "Showcase mode active. No reset email is sent.",
+      });
+    }
+
+    const { db } = await import("@/lib/db");
+
     const user = await db.user.findUnique({
       where: { email },
       select: { id: true, email: true },
     });
 
     if (user) {
-      // Invalidate previous unused tokens for this email
       await db.passwordResetToken.updateMany({
         where: { email, used: false },
         data: { used: true },
       });
 
       const token = generateToken(40);
-      const expires = new Date(Date.now() + 30 * 60 * 1000); // 30 min
+      const expires = new Date(Date.now() + 30 * 60 * 1000);
       await db.passwordResetToken.create({
         data: { email, token, expires },
       });
 
-      // In production, send via email. For local dev, log the link.
       const resetUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/reset-password?token=${token}`;
       if (process.env.NODE_ENV !== "production") {
         console.log("[forgot-password] reset link:", resetUrl);
       }
-      // TODO: wire to a real email provider (Resend, SendGrid, etc.)
     }
 
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
+  } catch (e) {
     console.error("[forgot-password]", e);
     return NextResponse.json(
       { error: "Something went wrong" },
@@ -55,3 +62,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

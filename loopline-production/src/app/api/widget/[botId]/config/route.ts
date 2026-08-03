@@ -1,16 +1,28 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 interface Params {
   params: Promise<{ botId: string }>;
 }
 
-/**
- * Public endpoint — returns a bot's public configuration.
- * No auth required (end-users load this in the widget iframe).
- */
 export async function GET(_req: Request, { params }: Params) {
   const { botId } = await params;
+
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({
+      bot: {
+        id: botId,
+        name: "Demo Bot",
+        avatarUrl: null,
+        primaryColor: "#1a56db",
+        welcomeMessage: "Hi! How can I help you today?",
+      },
+      showcase: true,
+    });
+  }
+
+  const { db } = await import("@/lib/db");
   const bot = await db.bot.findUnique({
     where: { id: botId },
     select: {

@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { DashboardTopbar } from "@/components/dashboard/sidebar";
 import { ProfileClient } from "./profile-client";
@@ -11,6 +10,7 @@ export default async function ProfilePage() {
 
   let user: { id: string; name: string | null; email: string; image: string | null; createdAt: Date } | null = null;
   try {
+    const { db } = await import("@/lib/db");
     user = await db.user.findUnique({
       where: { id: session.user.id },
       select: { id: true, name: true, email: true, image: true, createdAt: true },

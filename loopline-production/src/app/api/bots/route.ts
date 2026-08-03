@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { PLANS, computeUsageState } from "@/lib/billing";
 import { z } from "zod";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const createSchema = z.object({
   name: z.string().min(1, "Bot name is required").max(60),
@@ -17,6 +18,12 @@ export async function GET() {
   if (!session?.user?.workspaceId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({ bots: [] });
+  }
+
+  const { db } = await import("@/lib/db");
   const bots = await db.bot.findMany({
     where: { workspaceId: session.user.workspaceId },
     orderBy: { createdAt: "desc" },
@@ -49,7 +56,21 @@ export async function POST(req: Request) {
     );
   }
 
-  // Check plan limit
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({
+      bot: {
+        id: `demo-bot-${Date.now()}`,
+        workspaceId: wsId,
+        name: parsed.data.name,
+        primaryColor: parsed.data.primaryColor,
+        welcomeMessage: parsed.data.welcomeMessage,
+        avatarUrl: parsed.data.avatarUrl || null,
+      },
+      showcase: true,
+    });
+  }
+
+  const { db } = await import("@/lib/db");
   const [workspace, botCount] = await Promise.all([
     db.workspace.findUnique({
       where: { id: wsId },

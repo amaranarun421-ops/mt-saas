@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { BillingDashboard, type BillingRow } from "@/components/driftframe/billing-dashboard";
 import { redirect } from "next/navigation";
 
@@ -20,6 +19,7 @@ export default async function BillingPage() {
   }> = [];
 
   try {
+    const { db } = await import("@/lib/db");
     [transactions, purchases] = await Promise.all([
       db.creditTransaction.findMany({
         where: { userId: session.user.id },

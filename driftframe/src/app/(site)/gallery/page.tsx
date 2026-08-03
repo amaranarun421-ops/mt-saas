@@ -1,4 +1,3 @@
-import { db } from "@/lib/db";
 import { PublicGallery } from "@/components/driftframe/public-gallery";
 import type { ImageCardData } from "@/components/driftframe/image-card";
 
@@ -19,7 +18,9 @@ export default async function GalleryPage() {
     };
   }> = [];
 
+  if (!SHOWCASE_MODE && process.env.DATABASE_URL) {
   try {
+    const { db } = await import("@/lib/db");
     rows = await db.image.findMany({
       where: { isPublic: true },
       orderBy: { createdAt: "desc" },
@@ -39,6 +40,7 @@ export default async function GalleryPage() {
   } catch (error) {
     console.error("[driftframe gallery] showcase fallback", error);
   }
+}
 
   const images: ImageCardData[] = rows.map((img) => ({
     id: img.id,

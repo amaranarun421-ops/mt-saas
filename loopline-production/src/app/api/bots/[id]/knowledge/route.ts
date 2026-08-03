@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { chunkText } from "@/lib/utils";
 import { z } from "zod";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -14,19 +15,22 @@ const uploadSchema = z.object({
   sourceName: z.string().min(1, "Source name is required").max(120),
 });
 
+async function ensureBot(id: string, workspaceId: string) {
+  const { db } = await import("@/lib/db");
+  const bot = await db.bot.findUnique({
+    where: { id },
+    select: { workspaceId: true },
+  });
+  if (!bot || bot.workspaceId !== workspaceId) return null;
+  return bot;
+}
+
 export async function POST(req: Request, { params }: Params) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.workspaceId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
-  const bot = await db.bot.findUnique({
-    where: { id },
-    select: { workspaceId: true },
-  });
-  if (!bot || bot.workspaceId !== session.user.workspaceId) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
 
   const body = await req.json().catch(() => ({}));
   const parsed = uploadSchema.safeParse(body);
@@ -37,6 +41,22 @@ export async function POST(req: Request, { params }: Params) {
     );
   }
 
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    const chunks = chunkText(parsed.data.content, parsed.data.sourceName).map((content, index) => ({
+      id: `demo-chunk-${index + 1}`,
+      botId: id,
+      content,
+      sourceName: parsed.data.sourceName,
+    }));
+    return NextResponse.json({ count: chunks.length, chunks, showcase: true });
+  }
+
+  const bot = await ensureBot(id, session.user.workspaceId);
+  if (!bot) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const { db } = await import("@/lib/db");
   const chunks = chunkText(parsed.data.content, parsed.data.sourceName);
   const created = await db.$transaction(
     chunks.map((content) =>
@@ -59,14 +79,17 @@ export async function GET(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
-  const bot = await db.bot.findUnique({
-    where: { id },
-    select: { workspaceId: true },
-  });
-  if (!bot || bot.workspaceId !== session.user.workspaceId) {
+
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({ chunks: [] });
+  }
+
+  const bot = await ensureBot(id, session.user.workspaceId);
+  if (!bot) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const { db } = await import("@/lib/db");
   const chunks = await db.knowledgeChunk.findMany({
     where: { botId: id },
     orderBy: { createdAt: "desc" },
@@ -86,19 +109,22 @@ export async function DELETE(req: Request, { params }: Params) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
-  const bot = await db.bot.findUnique({
-    where: { id },
-    select: { workspaceId: true },
-  });
-  if (!bot || bot.workspaceId !== session.user.workspaceId) {
+
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({ ok: true, showcase: true });
+  }
+
+  const bot = await ensureBot(id, session.user.workspaceId);
+  if (!bot) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const { db } = await import("@/lib/db");
   const { searchParams } = new URL(req.url);
   const chunkId = searchParams.get("chunkId");
 
   if (chunkId) {
-    await db.knowledgeChunk.delete({ where: { id: chunkId, botId: id } });
+    await db.knowledgeChunk.delete({ where: { id: chunkId } });
   } else {
     await db.knowledgeChunk.deleteMany({ where: { botId: id } });
   }

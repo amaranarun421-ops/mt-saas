@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "next-auth/react";
 import { SocialAuth } from "../_components/social-auth";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const schema = z.object({
   name: z.string().min(1, "Your name is required").max(80),
@@ -41,6 +43,12 @@ export function SignupForm() {
   });
 
   async function onSubmit(data: Inputs) {
+    if (SHOWCASE_MODE) {
+      toast.message("Showcase mode uses the demo account only. Open sign in to continue.");
+      router.push("/signin");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/auth/signup", {
@@ -54,7 +62,11 @@ export function SignupForm() {
         setLoading(false);
         return;
       }
-      // Auto sign-in
+      if (json.showcase) {
+        toast.message(json.message || "Use the demo account to sign in.");
+        router.push("/signin");
+        return;
+      }
       const signInRes = await signIn("credentials", {
         email: data.email,
         password: data.password,
@@ -68,7 +80,7 @@ export function SignupForm() {
       toast.success("Welcome to Loopline!");
       router.push("/dashboard");
       router.refresh();
-    } catch (e) {
+    } catch {
       toast.error("Something went wrong. Please try again.");
       setLoading(false);
     }
@@ -79,7 +91,9 @@ export function SignupForm() {
       <div className="text-center">
         <h1 className="font-display text-2xl text-foreground">Start free</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Create your workspace — no card required.
+          {SHOWCASE_MODE
+            ? "Showcase mode uses the demo account on the sign-in page."
+            : "Create your workspace - no card required."}
         </p>
       </div>
 
@@ -129,7 +143,7 @@ export function SignupForm() {
                 {...field}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                A workspace can hold multiple bots — useful for agencies.
+                A workspace can hold multiple bots - useful for agencies.
               </p>
               {fieldState.error && (
                 <p className="mt-1 text-xs text-destructive">{fieldState.error.message}</p>
@@ -191,7 +205,7 @@ export function SignupForm() {
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Creating workspace…
+              Creating workspace...
             </>
           ) : (
             "Create workspace"
@@ -200,7 +214,7 @@ export function SignupForm() {
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        Already have an account? 
         <Link href="/signin" className="font-medium text-brand-500 underline-offset-4 hover:underline">
           Sign in
         </Link>

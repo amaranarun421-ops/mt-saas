@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const ProfileSchema = z.object({
   name: z.string().min(1).max(80).optional(),
 });
 
-/** PATCH /api/user/profile — update the signed-in user's display name. */
 export async function PATCH(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -29,9 +29,22 @@ export async function PATCH(req: Request) {
     );
   }
 
+  const name = parsed.data.name?.trim() || null;
+
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({
+      id: session.user.id,
+      name,
+      email: session.user.email,
+      showcase: true,
+    });
+  }
+
+  const { db } = await import("@/lib/db");
+
   const updated = await db.user.update({
     where: { id: session.user.id },
-    data: { name: parsed.data.name?.trim() || null },
+    data: { name },
     select: { id: true, name: true, email: true },
   });
 

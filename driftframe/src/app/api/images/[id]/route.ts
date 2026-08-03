@@ -1,20 +1,15 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const PatchSchema = z.object({
   favorite: z.boolean().optional(),
   isPublic: z.boolean().optional(),
 });
 
-/**
- * PATCH /api/images/[id]
- *
- * Updates an image's `isFavorite` and/or `isPublic` flags. Only the owner
- * of the image's generation may mutate it.
- */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -40,7 +35,17 @@ export async function PATCH(
     );
   }
 
-  // Find the image and verify ownership via the generation's userId.
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({
+      id,
+      isFavorite: parsed.data.favorite ?? false,
+      isPublic: parsed.data.isPublic ?? false,
+      showcase: true,
+    });
+  }
+
+  const { db } = await import("@/lib/db");
+
   const image = await db.image.findUnique({
     where: { id },
     select: { id: true, generation: { select: { userId: true } } },
@@ -65,19 +70,18 @@ export async function PATCH(
   return NextResponse.json(updated);
 }
 
-/**
- * GET /api/images/[id]
- *
- * Returns a single image with its parent generation's prompt/style/etc.
- * Used by the lightbox detail panel. Returns 403 for private images owned
- * by someone else.
- */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await getServerSession(authOptions);
   const { id } = await params;
+
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
+
+  const { db } = await import("@/lib/db");
 
   const image = await db.image.findUnique({
     where: { id },

@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { DashboardTopbar } from "@/components/dashboard/sidebar";
 import { BillingClient } from "./billing-client";
@@ -18,6 +17,7 @@ export default async function BillingPage() {
   let monthConvoCount = 0;
 
   try {
+    const { db } = await import("@/lib/db");
     [workspace, botCount, monthConvoCount] = await Promise.all([
       db.workspace.findUnique({ where: { id: wsId }, include: { subscription: true } }),
       db.bot.count({ where: { workspaceId: wsId } }),

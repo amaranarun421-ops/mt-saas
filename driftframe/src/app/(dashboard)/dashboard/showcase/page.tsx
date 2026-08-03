@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { ShowcaseGallery } from "@/components/driftframe/showcase-gallery-dashboard";
 import type { ImageCardData } from "@/components/driftframe/image-card";
 import { redirect } from "next/navigation";
@@ -22,6 +21,7 @@ export default async function ShowcasePage() {
   }> = [];
 
   try {
+    const { db } = await import("@/lib/db");
     rows = await db.image.findMany({
       where: { generation: { userId: session.user.id }, isPublic: true },
       orderBy: { createdAt: "desc" },

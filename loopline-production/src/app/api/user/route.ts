@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { z } from "zod";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const patchSchema = z.object({
   name: z.string().min(1, "Name is required").max(80),
@@ -19,6 +20,18 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({
+      user: {
+        id: session.user.id,
+        email: session.user.email,
+        name: parsed.data.name,
+      },
+      showcase: true,
+    });
+  }
+
+  const { db } = await import("@/lib/db");
   const user = await db.user.update({
     where: { id: session.user.id },
     data: { name: parsed.data.name },

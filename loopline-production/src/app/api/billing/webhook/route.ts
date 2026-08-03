@@ -1,27 +1,11 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import { planFromPriceId } from "@/lib/stripe";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 
-/**
- * Stripe webhook handler.
- *
- * In simulated mode (no STRIPE_SECRET_KEY), this route is never hit —
- * /dashboard/billing/success handles the fake "checkout completed" event
- * directly.
- *
- * When real Stripe keys are present, point your webhook at this URL:
- *   https://your-deployment.app/api/billing/webhook
- * with events:
- *   - checkout.session.completed
- *   - customer.subscription.updated
- *   - customer.subscription.deleted
- *   - invoice.payment_failed
- */
 export async function POST(req: Request) {
   const stripe = getStripe();
-  if (!stripe) {
+  if (!stripe || !process.env.DATABASE_URL) {
     return NextResponse.json(
       { error: "Stripe not configured" },
       { status: 400 },
@@ -47,18 +31,16 @@ export async function POST(req: Request) {
     );
   }
 
+  const { db } = await import("@/lib/db");
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const wsId = session.client_reference_id || session.metadata?.workspaceId;
-        const plan = session.metadata?.plan as
-          | "PRO"
-          | "AGENCY"
-          | undefined;
+        const plan = session.metadata?.plan as "PRO" | "AGENCY" | undefined;
         if (!wsId || !plan) break;
 
-        // Ensure user has a stripeCustomerId
         if (session.customer) {
           const ws = await db.workspace.findUnique({
             where: { id: wsId },
@@ -142,7 +124,6 @@ export async function POST(req: Request) {
       }
 
       default:
-        // Ignore unhandled events
         break;
     }
 

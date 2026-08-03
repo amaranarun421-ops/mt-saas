@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
+
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -14,6 +15,34 @@ export async function GET(_req: Request, { params }: Params) {
   }
   const { id } = await params;
 
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    return NextResponse.json({
+      bot: {
+        id,
+        name: "Demo Bot",
+        primaryColor: "#1a56db",
+        createdAt: new Date().toISOString(),
+      },
+      summary: {
+        totalConversations: 0,
+        messageCount: 0,
+        chunkCount: 0,
+        resolved: 0,
+        needsHuman: 0,
+        aiHandled: 0,
+        resolutionRate: 0,
+      },
+      volumeByDay: Array.from({ length: 14 }, (_, index) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (13 - index));
+        return { date: d.toISOString().slice(5, 10), count: 0 };
+      }),
+      topQuestions: [],
+      showcase: true,
+    });
+  }
+
+  const { db } = await import("@/lib/db");
   const bot = await db.bot.findUnique({
     where: { id },
     select: { workspaceId: true, name: true, primaryColor: true, createdAt: true },
@@ -44,11 +73,8 @@ export async function GET(_req: Request, { params }: Params) {
     db.knowledgeChunk.count({ where: { botId: id } }),
   ]);
 
-  // Last 14 days volume
   const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-  const recentConversations = conversations.filter(
-    (c) => c.createdAt >= fourteenDaysAgo,
-  );
+  const recentConversations = conversations.filter((c) => c.createdAt >= fourteenDaysAgo);
 
   const volumeByDay: { date: string; count: number }[] = [];
   for (let i = 13; i >= 0; i--) {
@@ -57,9 +83,7 @@ export async function GET(_req: Request, { params }: Params) {
     d.setDate(d.getDate() - i);
     const next = new Date(d);
     next.setDate(next.getDate() + 1);
-    const count = recentConversations.filter(
-      (c) => c.createdAt >= d && c.createdAt < next,
-    ).length;
+    const count = recentConversations.filter((c) => c.createdAt >= d && c.createdAt < next).length;
     volumeByDay.push({
       date: d.toISOString().slice(5, 10),
       count,
@@ -69,12 +93,8 @@ export async function GET(_req: Request, { params }: Params) {
   const resolved = conversations.filter((c) => c.status === "RESOLVED").length;
   const needsHuman = conversations.filter((c) => c.status === "NEEDS_HUMAN").length;
   const aiHandled = conversations.filter((c) => c.status === "AI").length;
-  const resolutionRate =
-    conversations.length === 0
-      ? 0
-      : Math.round(((conversations.length - needsHuman) / conversations.length) * 100);
+  const resolutionRate = conversations.length === 0 ? 0 : Math.round(((conversations.length - needsHuman) / conversations.length) * 100);
 
-  // Top questions — first user message of each conversation, lowercased, grouped
   const questionCounts = new Map<string, number>();
   for (const c of conversations) {
     const q = c.messages[0]?.content?.trim().toLowerCase().slice(0, 100);

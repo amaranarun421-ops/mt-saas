@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { UsageDashboard } from "@/components/driftframe/usage-dashboard";
 import { redirect } from "next/navigation";
 
@@ -20,6 +19,7 @@ export default async function UsagePage() {
   let pubCount = 0;
 
   try {
+    const { db } = await import("@/lib/db");
     [recentGens, allGens, imageCount, favCount, pubCount] = await Promise.all([
       db.generation.findMany({ where: { userId: session.user.id, createdAt: { gte: thirtyDaysAgo } }, select: { createdAt: true, style: true } }),
       db.generation.findMany({ where: { userId: session.user.id }, select: { style: true } }),

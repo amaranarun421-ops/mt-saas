@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { GenerateStudio } from "@/components/driftframe/generate-studio";
 import { DashboardHomeHeader } from "@/components/driftframe/dashboard-home-header";
 import type { ImageCardData } from "@/components/driftframe/image-card";
@@ -37,6 +36,7 @@ export default async function DashboardPage({
   }> = [];
 
   try {
+    const { db } = await import("@/lib/db");
     [recent, totalCount, favoriteCount, publicCount, recentGenerations] = await Promise.all([
       db.image.findMany({
         where: { generation: { userId: session.user.id } },

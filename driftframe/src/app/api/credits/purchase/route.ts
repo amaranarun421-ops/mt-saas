@@ -1,24 +1,14 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
 import {
   CREDIT_PACKS,
   SUBSCRIPTION_PLAN,
   formatPrice,
 } from "@/lib/constants";
 
-// ------------------------------------------------------------------
-// PRODUCTION: Replace this with Stripe Checkout Session creation.
-// Stripe webhook at /api/webhooks/stripe should:
-//   - on checkout.session.completed: add credits, create CreditPurchase
-//   - on invoice.payment_succeeded (subscription): refill 300 credits monthly
-//   - on customer.subscription.deleted: mark subscription canceled
-//
-// Demo flow: directly credit the user and create a CreditPurchase /
-// Subscription row with a mock stripe_*_id ("mock_pi_<ts>" / "mock_sub_<ts>").
-// ------------------------------------------------------------------
+const SHOWCASE_MODE = process.env.NEXT_PUBLIC_SHOWCASE_MODE !== "0";
 
 const PurchaseSchema = z.object({
   packId: z.enum(["50", "200", "500", "subscription"]),
@@ -29,7 +19,6 @@ export async function POST(req: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  const userId = session.user.id;
 
   let body: unknown;
   try {
@@ -44,12 +33,40 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
+
   const { packId } = parsed.data;
+  const currentCredits = session.user.creditsRemaining ?? 100;
+
+  if (SHOWCASE_MODE || !process.env.DATABASE_URL) {
+    if (packId === "subscription") {
+      return NextResponse.json({
+        ok: true,
+        subscriptionId: `demo-sub-${Date.now()}`,
+        creditsAdded: SUBSCRIPTION_PLAN.credits,
+        creditsRemaining: currentCredits + SUBSCRIPTION_PLAN.credits,
+        showcase: true,
+      });
+    }
+
+    const pack = CREDIT_PACKS.find((p) => p.id === packId);
+    if (!pack) {
+      return NextResponse.json({ error: "unknown_pack" }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      paymentIntentId: `demo-pi-${Date.now()}`,
+      creditsAdded: pack.credits,
+      priceLabel: formatPrice(pack.priceCents),
+      creditsRemaining: currentCredits + pack.credits,
+      showcase: true,
+    });
+  }
+
+  const { db } = await import("@/lib/db");
+  const userId = session.user.id;
 
   if (packId === "subscription") {
-    // Create / refresh an active subscription. In production, Stripe would
-    // drive this via webhooks; here we directly grant the monthly credits
-    // and set the next period end 30 days out.
     const now = new Date();
     const periodEnd = new Date(now);
     periodEnd.setDate(periodEnd.getDate() + 30);
