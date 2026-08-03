@@ -18,17 +18,9 @@ import { cn } from "@/lib/utils";
 interface BuyCreditsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Called after a successful purchase — parent can refetch history etc. */
   onPurchased?: () => void;
 }
 
-/**
- * Quick-access modal for buying credit packs + subscription.
- *
- * Posts to /api/credits/purchase which, in the demo, directly credits the
- * user (mock Stripe flow). In production this would redirect to a Stripe
- * Checkout Session URL.
- */
 export function BuyCreditsModal({
   open,
   onOpenChange,
@@ -49,7 +41,7 @@ export function BuyCreditsModal({
       if (!res.ok) {
         throw new Error(data?.error || "purchase_failed");
       }
-      // Refresh the session JWT so the credit pill updates immediately.
+
       await update();
       toast.success(
         packId === "subscription"
@@ -58,8 +50,8 @@ export function BuyCreditsModal({
       );
       onPurchased?.();
       onOpenChange(false);
-    } catch (e: any) {
-      toast.error(e.message || "Purchase failed. Please try again.");
+    } catch (error: any) {
+      toast.error(error.message || "Purchase failed. Please try again.");
     } finally {
       setBusyId(null);
     }
@@ -67,46 +59,48 @@ export function BuyCreditsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="driftframe-glass max-w-2xl border-border p-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="font-display text-2xl">
-            Buy credits
-          </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
-            One-time packs never expire. Or subscribe for monthly auto-refill.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-2xl overflow-hidden border-border bg-background/95 p-0 shadow-[0_24px_80px_rgba(10,10,15,0.18)] backdrop-blur-xl dark:bg-popover/95">
+        <div className="bg-radial-spotlight">
+          <DialogHeader className="border-b border-border/80 px-6 pb-4 pt-6">
+            <DialogTitle className="font-display text-2xl text-foreground">
+              Buy credits
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              One-time packs never expire. Or subscribe for monthly auto-refill.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-3 p-6 pt-2 sm:grid-cols-2">
-          {CREDIT_PACKS.map((pack) => (
+          <div className="grid grid-cols-1 gap-3 p-6 pt-4 sm:grid-cols-2">
+            {CREDIT_PACKS.map((pack) => (
+              <PackCard
+                key={pack.id}
+                title={`${pack.credits} credits`}
+                price={pack.priceLabel}
+                sub={pack.perCredit}
+                highlight={pack.highlight}
+                loading={busyId === pack.id}
+                disabled={busyId !== null}
+                onClick={() => buy(pack.id)}
+              />
+            ))}
+
             <PackCard
-              key={pack.id}
-              title={`${pack.credits} credits`}
-              price={pack.priceLabel}
-              sub={pack.perCredit}
-              highlight={pack.highlight}
-              loading={busyId === pack.id}
+              title="Pro subscription"
+              price={SUBSCRIPTION_PLAN.priceLabel}
+              sub={`${SUBSCRIPTION_PLAN.period} - 300 credits / mo`}
+              highlight
+              loading={busyId === "subscription"}
               disabled={busyId !== null}
-              onClick={() => buy(pack.id)}
+              onClick={() => buy("subscription")}
+              className="sm:col-span-2"
             />
-          ))}
+          </div>
 
-          <PackCard
-            title="Pro subscription"
-            price={`${SUBSCRIPTION_PLAN.priceLabel}`}
-            sub={`${SUBSCRIPTION_PLAN.period} · 300 credits / mo`}
-            highlight
-            loading={busyId === "subscription"}
-            disabled={busyId !== null}
-            onClick={() => buy("subscription")}
-            className="sm:col-span-2"
-          />
+          <p className="border-t border-border/80 px-6 py-4 text-center text-xs text-muted-foreground">
+            Demo mode - no real payment is processed. The mock checkout credits
+            your account instantly.
+          </p>
         </div>
-
-        <p className="px-6 pb-6 text-center text-xs text-muted-foreground">
-          Demo mode — no real payment is processed. The mock checkout credits
-          your account instantly.
-        </p>
       </DialogContent>
     </Dialog>
   );
@@ -134,21 +128,21 @@ function PackCard({
   return (
     <div
       className={cn(
-        "relative rounded-2xl border p-4 transition-all",
+        "relative rounded-2xl border bg-card p-4 shadow-sm transition-all",
         highlight
-          ? "border-transparent bg-card ring-2 ring-[#7c3aed]"
-          : "border-border bg-card/60",
+          ? "border-transparent ring-2 ring-[#7c3aed]"
+          : "border-border bg-card/90",
         className,
       )}
     >
       {highlight && (
-        <span className="absolute -top-2 left-4 bg-[#7c3aed] inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white">
+        <span className="absolute -top-2 left-4 inline-flex items-center gap-1 rounded-full bg-[#7c3aed] px-2 py-0.5 text-[10px] font-semibold text-white">
           <Check className="h-2.5 w-2.5" /> Popular
         </span>
       )}
-      <div className="flex items-baseline justify-between">
-        <span className="font-medium">{title}</span>
-        <span className="font-display text-xl">{price}</span>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="font-medium text-foreground">{title}</span>
+        <span className="font-display text-xl text-foreground">{price}</span>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
       <GradientButton

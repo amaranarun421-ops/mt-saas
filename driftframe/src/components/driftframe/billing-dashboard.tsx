@@ -24,10 +24,9 @@ import { formatDate, formatDateTime } from "@/lib/format";
 
 export interface BillingRow {
   id: string;
-  type: string; // "purchase" | "generation_spend" | "refund" | "subscription_refill"
+  type: string;
   amount: number;
   createdAt: string;
-  // For purchase rows only:
   invoiceId?: string;
   creditsPurchased?: number;
   amountPaidCents?: number;
@@ -62,7 +61,6 @@ export function BillingDashboard({
 
   function downloadInvoice(tx: BillingRow) {
     setDownloading(tx.id);
-    // Mock invoice — generate a simple text "invoice" and trigger download.
     setTimeout(() => {
       const lines = [
         "DRIFTFRAME",
@@ -72,9 +70,7 @@ export function BillingDashboard({
         `Date: ${formatDateTime(tx.createdAt)}`,
         `Type: ${TYPE_LABELS[tx.type] ?? tx.type}`,
         tx.creditsPurchased ? `Credits: ${tx.creditsPurchased}` : null,
-        tx.amountPaidCents
-          ? `Amount: $${(tx.amountPaidCents / 100).toFixed(2)} USD`
-          : null,
+        tx.amountPaidCents ? `Amount: $${(tx.amountPaidCents / 100).toFixed(2)} USD` : null,
         "",
         "Thanks for your purchase.",
         "This is a mock invoice generated for demo purposes.",
@@ -93,60 +89,36 @@ export function BillingDashboard({
     }, 500);
   }
 
-  const totalPurchased = initialPurchases.reduce(
-    (sum, tx) => sum + (tx.creditsPurchased ?? 0),
-    0,
-  );
-  const totalSpent = initialPurchases.reduce(
-    (sum, tx) => sum + (tx.amountPaidCents ?? 0),
-    0,
-  );
+  const totalPurchased = initialPurchases.reduce((sum, tx) => sum + (tx.creditsPurchased ?? 0), 0);
+  const totalSpent = initialPurchases.reduce((sum, tx) => sum + (tx.amountPaidCents ?? 0), 0);
 
   return (
-    <div className="driftframe-container-wide py-6 space-y-6">
-      {/* Header */}
+    <div className="driftframe-container-wide space-y-6 py-6">
       <div>
         <div className="flex items-center gap-2">
           <Receipt className="h-5 w-5 text-[#7c3aed]" />
-          <h1 className="font-display text-2xl font-semibold tracking-tight">
-            Billing
-          </h1>
+          <h1 className="font-display text-2xl font-semibold tracking-tight">Billing</h1>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every credit transaction, every purchase. Download mock invoices for
-          your records.
+          Every credit transaction, every purchase. Download mock invoices for your records.
         </p>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <GlassPanel>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">
-            Total credits purchased
-          </p>
-          <p className="mt-1 font-display text-3xl font-semibold tabular-nums">
-            {totalPurchased}
-          </p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Total credits purchased</p>
+          <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{totalPurchased}</p>
         </GlassPanel>
         <GlassPanel>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">
-            Total spent
-          </p>
-          <p className="mt-1 font-display text-3xl font-semibold tabular-nums">
-            ${(totalSpent / 100).toFixed(2)}
-          </p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Total spent</p>
+          <p className="mt-1 font-display text-3xl font-semibold tabular-nums">${(totalSpent / 100).toFixed(2)}</p>
         </GlassPanel>
         <GlassPanel>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">
-            Transactions
-          </p>
-          <p className="mt-1 font-display text-3xl font-semibold tabular-nums">
-            {initialTransactions.length}
-          </p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Transactions</p>
+          <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{initialTransactions.length}</p>
         </GlassPanel>
       </div>
 
-      {/* Filters + table */}
       <GlassPanel padded={false} className="overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-border p-4">
           <div className="flex items-center gap-2">
@@ -154,7 +126,7 @@ export function BillingDashboard({
             <span className="text-sm font-medium">Transaction history</span>
           </div>
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[180px] h-9">
+            <SelectTrigger className="h-9 w-[180px]">
               <SelectValue placeholder="Filter" />
             </SelectTrigger>
             <SelectContent>
@@ -171,7 +143,7 @@ export function BillingDashboard({
             No transactions match this filter.
           </div>
         ) : (
-          <div className="overflow-x-auto driftframe-scroll">
+          <div className="driftframe-scroll overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
@@ -189,43 +161,31 @@ export function BillingDashboard({
                   const isPurchase = tx.type === "purchase" || tx.type === "subscription_refill";
                   return (
                     <tr key={tx.id} className="hover:bg-muted/20">
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                        {formatDate(tx.createdAt)}
-                      </td>
-                      <td className="px-4 py-3">
-                        {TYPE_LABELS[tx.type] ?? tx.type}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                        {tx.invoiceId ?? "—"}
-                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">{formatDate(tx.createdAt)}</td>
+                      <td className="px-4 py-3">{TYPE_LABELS[tx.type] ?? tx.type}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{tx.invoiceId ?? "-"}</td>
                       <td
                         className={cn(
                           "px-4 py-3 text-right font-medium tabular-nums",
-                          tx.amount > 0
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-foreground",
+                          tx.amount > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-foreground",
                         )}
                       >
                         {formatCreditAmount(tx.amount)}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
-                        {tx.amountPaidCents
-                          ? `$${(tx.amountPaidCents / 100).toFixed(2)}`
-                          : "—"}
+                        {tx.amountPaidCents ? `$${(tx.amountPaidCents / 100).toFixed(2)}` : "-"}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span className="inline-flex items-center gap-1 text-xs">
                           {isPurchase ? (
                             <>
                               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                              <span className="text-emerald-600 dark:text-emerald-400">
-                                Paid
-                              </span>
+                              <span className="text-emerald-600 dark:text-emerald-400">Paid</span>
                             </>
                           ) : (
                             <>
                               <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="text-muted-foreground">—</span>
+                              <span className="text-muted-foreground">-</span>
                             </>
                           )}
                         </span>
@@ -236,7 +196,7 @@ export function BillingDashboard({
                             type="button"
                             onClick={() => downloadInvoice(tx)}
                             disabled={downloading === tx.id}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted/60 transition-colors disabled:opacity-50 min-h-[32px]"
+                            className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/60 disabled:opacity-50"
                           >
                             {downloading === tx.id ? (
                               <RefreshCw className="h-3 w-3 animate-spin" />
@@ -246,7 +206,7 @@ export function BillingDashboard({
                             Download
                           </button>
                         ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
+                          <span className="text-xs text-muted-foreground">-</span>
                         )}
                       </td>
                     </tr>
@@ -259,8 +219,7 @@ export function BillingDashboard({
       </GlassPanel>
 
       <p className="text-center text-xs text-muted-foreground">
-        Demo mode — invoices are mock text files. Wire Stripe webhook in
-        production to issue real PDF invoices.
+        Demo mode - invoices are mock text files. Wire Stripe webhook in production to issue real PDF invoices.
       </p>
     </div>
   );
